@@ -28,7 +28,7 @@ public class ClientSession extends AbstractClientSession {
   public void execLoadSession() throws ProcessingException {
     setServiceTunnel(new ClientHttpServiceTunnel(this, UriUtility.toUrl(getBundle().getBundleContext().getProperty("server.url"))));
 
-    //pre-load all known code typesaa
+    //pre-load all known code types
     CODES.getAllCodeTypes(org.eclipsescout.egt.shared.Activator.PLUGIN_ID);
 
     setDesktop(new Desktop());
