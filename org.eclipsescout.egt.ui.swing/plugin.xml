@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin>
+  <extension id="app" name="Application" point="org.eclipse.core.runtime.applications">
+    <application>
+      <run class="org.eclipsescout.egt.ui.swing.SwingApplication"/>
+    </application>
+  </extension>
+  <extension id="product" point="org.eclipse.core.runtime.products">
+    <product
+          application="org.eclipsescout.egt.ui.swing.app"
+          name="egt">
+       <property
+             name="appName"
+             value="egt">
+       </property>
+    </product>
+  </extension>
+</plugin>
