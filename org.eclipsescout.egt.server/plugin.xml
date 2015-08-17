@@ -24,6 +24,22 @@
             class="org.eclipsescout.egt.server.services.StandardOutlineService"
             session="org.eclipsescout.egt.server.ServerSession">
       </service>
+      <service
+            factory="org.eclipse.scout.rt.server.services.ServerServiceFactory"
+            class="org.eclipsescout.egt.server.services.common.sql.DerbySqlService"
+            session="org.eclipsescout.egt.server.ServerSession">
+      </service>
+      <!--     Graph     -->
+      <service
+            factory="org.eclipse.scout.rt.server.services.ServerServiceFactory"
+            class="org.eclipsescout.egt.server.graph.EgtGraphPageService"
+            session="org.eclipsescout.egt.server.ServerSession">
+      </service>
+      <service
+            factory="org.eclipse.scout.rt.server.services.ServerServiceFactory"
+            class="org.eclipsescout.egt.server.graph.EgtGraphProcessService"
+            session="org.eclipsescout.egt.server.ServerSession">
+      </service>
    </extension>
    <extension
          name=""

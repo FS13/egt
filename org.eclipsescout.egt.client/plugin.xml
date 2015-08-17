@@ -9,5 +9,20 @@
             class="org.eclipsescout.egt.shared.services.IStandardOutlineService">
       </proxy>
    </extension>
+   
+   
+   <!--    Graph     -->
+   <extension
+         name=""
+         point="org.eclipse.scout.service.services">
+      <proxy
+            factory="org.eclipse.scout.rt.client.services.ClientProxyServiceFactory"
+            class="org.eclipsescout.egt.shared.graph.IEgtGraphPageService">
+      </proxy>
+      <proxy
+            factory="org.eclipse.scout.rt.client.services.ClientProxyServiceFactory"
+            class="org.eclipsescout.egt.shared.graph.IEgtGraphProcessService">
+      </proxy>
+   </extension>
 
 </plugin>

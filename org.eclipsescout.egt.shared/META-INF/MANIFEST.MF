@@ -5,6 +5,7 @@ Bundle-SymbolicName: org.eclipsescout.egt.shared;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: org.eclipsescout.egt.shared.Activator
 Export-Package: org.eclipsescout.egt.shared,
+ org.eclipsescout.egt.shared.graph,
  org.eclipsescout.egt.shared.services,
  org.eclipsescout.egt.shared.services.common.text
 Require-Bundle: org.eclipse.core.runtime,
