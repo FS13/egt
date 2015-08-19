@@ -174,10 +174,20 @@ public class EgtGraphForm extends AbstractForm {
       formData = service.prepareCreate(formData);
       importFormData(formData);
 
+      try {
+        getGraphDetailFormField().getInnerForm().setGraph(GraphUtility.buildGraphFromSvgText(getSvgText()));
+        getGraphDetailFormField().getInnerForm().populateGraph();
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
+
     }
 
     @Override
     protected void execStore() throws ProcessingException {
+      setSvgText(getGraphDetailFormField().getInnerForm().getGraphSvgSourceField().getValue());
+
       IEgtGraphProcessService service = SERVICES.getService(IEgtGraphProcessService.class);
       EgtGraphFormData formData = new EgtGraphFormData();
       exportFormData(formData);

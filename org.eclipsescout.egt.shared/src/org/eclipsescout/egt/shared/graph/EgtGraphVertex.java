@@ -15,6 +15,7 @@ public class EgtGraphVertex {
   private int m_y;
   private int m_radius;
   private EgtSpecies m_species;
+  private double m_fitness;
 
   private String m_svgText;
 
@@ -82,6 +83,14 @@ public class EgtGraphVertex {
     if (changed) {
       updateSvgText();
     }
+  }
+
+  public double getFitness() {
+    return m_fitness;
+  }
+
+  public void setFitness(double fitness) {
+    m_fitness = fitness;
   }
 
   public String getSvgText() {

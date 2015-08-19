@@ -54,4 +54,11 @@ public interface IEgtGraphProcessService extends IService {
    * @throws ProcessingException
    */
   int delete(List<Long> graphNrs) throws ProcessingException;
+
+  /**
+   * @param graphNr
+   * @return
+   * @throws ProcessingException
+   */
+  String getSvgTextForGraph(Long graphNr) throws ProcessingException;
 }

@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.eclipse.scout.commons.exception.ProcessingException;
 import org.eclipse.scout.commons.holders.NVPair;
+import org.eclipse.scout.commons.holders.StringHolder;
 import org.eclipse.scout.rt.server.services.common.jdbc.SQL;
 import org.eclipse.scout.service.AbstractService;
 import org.eclipsescout.egt.shared.graph.EgtGraphFormData;
@@ -72,4 +73,18 @@ public class EgtGraphProcessService extends AbstractService implements IEgtGraph
     }
     return del;
   }
+
+  @Override
+  public String getSvgTextForGraph(Long graphNr) throws ProcessingException {
+    StringHolder svgText = new StringHolder();
+    SQL.selectInto(""
+        + " SELECT SVG_TEXT "
+        + " FROM   GRAPH "
+        + " WHERE  GRAPH_NR = :graphNr "
+        + " INTO   :svgText "
+        , new NVPair("graphNr", graphNr)
+        , new NVPair("svgText", svgText));
+    return svgText.getValue();
+  }
+
 }

@@ -38,6 +38,9 @@ public final class GraphUtility {
   }
 
   public static EgtGraph buildGraphFromSvgText(String svgText) throws IOException, ProcessingException {
+    if (CompareUtility.equals(svgText, null)) {
+      return new EgtGraph();
+    }
     SVGDocument document = getDocument(svgText);
     EgtGraph graph = new EgtGraph();
     NodeList circles = document.getElementsByTagName("circle");

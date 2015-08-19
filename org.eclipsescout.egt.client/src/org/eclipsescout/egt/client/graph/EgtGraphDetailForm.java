@@ -21,7 +21,6 @@ import org.eclipse.scout.rt.client.ui.action.keystroke.IKeyStroke;
 import org.eclipse.scout.rt.client.ui.action.keystroke.KeyStroke;
 import org.eclipse.scout.rt.client.ui.action.menu.IMenuType;
 import org.eclipse.scout.rt.client.ui.action.menu.TableMenuType;
-import org.eclipse.scout.rt.client.ui.basic.table.AbstractTable;
 import org.eclipse.scout.rt.client.ui.basic.table.ITableRow;
 import org.eclipse.scout.rt.client.ui.basic.table.columns.AbstractColumn;
 import org.eclipse.scout.rt.client.ui.basic.table.columns.AbstractDoubleColumn;
@@ -39,6 +38,7 @@ import org.eclipse.scout.rt.client.ui.form.fields.tabbox.AbstractTabBox;
 import org.eclipse.scout.rt.client.ui.form.fields.tablefield.AbstractTableField;
 import org.eclipse.scout.rt.client.ui.messagebox.MessageBox;
 import org.eclipse.scout.rt.extension.client.ui.action.menu.AbstractExtensibleMenu;
+import org.eclipse.scout.rt.extension.client.ui.basic.table.AbstractExtensibleTable;
 import org.eclipse.scout.rt.shared.TEXTS;
 import org.eclipse.scout.rt.shared.services.common.code.CODES;
 import org.eclipse.scout.rt.shared.services.common.code.ICodeType;
@@ -262,13 +262,17 @@ public class EgtGraphDetailForm extends AbstractForm implements IEgtPageForm {
             }
 
             @Order(10.0)
-            public class Table extends AbstractTable {
+            public class Table extends AbstractExtensibleTable {
 
               @Override
               public ITableRow addRow(ITableRow newRow) throws ProcessingException {
+                decorate(newRow);
+                return super.addRow(newRow);
+              }
+
+              public void decorate(ITableRow newRow) throws ProcessingException {
                 getIDColumn().setValue(newRow, getEgtGraphVertecColumn().getValue(newRow).getId());
                 getSpeciesColumn().setValue(newRow, CODES.getCodeType(EgtSpeciesCodeType.class).getCodeIdByEnum(getEgtGraphVertecColumn().getValue(newRow).getSpecies()));
-                return super.addRow(newRow);
               }
 
               @Order(5.0)
@@ -321,7 +325,7 @@ public class EgtGraphDetailForm extends AbstractForm implements IEgtPageForm {
                 @Override
                 protected Long execValidateValue(ITableRow row, Long rawValue) throws ProcessingException {
                   rawValue = super.execValidateValue(row, rawValue);
-                  if (!CompareUtility.equals(rawValue, null)) {
+                  if (!CompareUtility.equals(rawValue, null) && !getGraph().isChanging()) {
                     IEgtSpeciesCode code = (IEgtSpeciesCode) CODES.getCodeType(EgtSpeciesCodeType.class).getCode(rawValue);
                     getEgtGraphVertecColumn().getValue(row).setSpecies(code.getEnum());
                     changeVertex(getEgtGraphVertecColumn().getValue(row));
@@ -800,14 +804,18 @@ public class EgtGraphDetailForm extends AbstractForm implements IEgtPageForm {
             }
 
             @Order(10.0)
-            public class Table extends AbstractTable {
+            public class Table extends AbstractExtensibleTable {
 
               @Override
               public ITableRow addRow(ITableRow newRow) throws ProcessingException {
+                decorate(newRow);
+                return super.addRow(newRow);
+              }
+
+              public void decorate(ITableRow newRow) throws ProcessingException {
                 getFromColumn().setValue(newRow, getEgtGraphWeightedDirectedEdgeColumn().getValue(newRow).getFrom().getId());
                 getToColumn().setValue(newRow, getEgtGraphWeightedDirectedEdgeColumn().getValue(newRow).getTo().getId());
                 getWeightColumn().setValue(newRow, getEgtGraphWeightedDirectedEdgeColumn().getValue(newRow).getWeight());
-                return super.addRow(newRow);
               }
 
               @Order(5.0)
@@ -964,12 +972,16 @@ public class EgtGraphDetailForm extends AbstractForm implements IEgtPageForm {
 
                 @Override
                 public void execAction() throws ProcessingException {
-//                  if (MessageBox.showDeleteConfirmationMessage(TEXTS.get("Vertices"), getIDColumn().getSelectedValues())) {
-//                    for (EgtGraphVertex vertex : getEgtGraphVertexColumn().getSelectedValues()) {
-//                      removeVertex(vertex);
-//                      deleteRows(getSelectedRows());
-//                    }
-//                  }
+                  List<String> edges = new ArrayList<String>();
+                  for (EgtGraphWeightedDirectedEdge edge : getEgtGraphWeightedDirectedEdgeColumn().getSelectedValues()) {
+                    edges.add(TEXTS.get("From") + " " + edge.getFrom().getId() + " " + TEXTS.get("ToLowerCase") + " " + edge.getTo().getId());
+                  }
+                  if (MessageBox.showDeleteConfirmationMessage(TEXTS.get("Edges"), edges)) {
+                    for (EgtGraphWeightedDirectedEdge edge : getEgtGraphWeightedDirectedEdgeColumn().getSelectedValues()) {
+                      removeEdge(edge);
+                      deleteRows(getSelectedRows());
+                    }
+                  }
                 }
               }
 
@@ -1097,17 +1109,33 @@ public class EgtGraphDetailForm extends AbstractForm implements IEgtPageForm {
   }
 
   public void populateGraph() throws ProcessingException {
-    for (EgtGraphVertex vertex : getGraph().getVertices()) {
-      ITableRow row = getVerticesTabBox().getVerticesTableField().getTable().createRow();
-      getVerticesTabBox().getVerticesTableField().getEgtGraphVertecColumn().setValue(row, vertex);
-      getVerticesTabBox().getVerticesTableField().getTable().addRow(row);
+    if (!CompareUtility.equals(getGraph(), null)) {
+      getVerticesTabBox().getVerticesTableField().getTable().deleteAllRows();
+      getEdgesTabBox().getEdgesTableField().getTable().deleteAllRows();
+      for (EgtGraphVertex vertex : getGraph().getVertices()) {
+        ITableRow row = getVerticesTabBox().getVerticesTableField().getTable().createRow();
+        getVerticesTabBox().getVerticesTableField().getEgtGraphVertecColumn().setValue(row, vertex);
+        getVerticesTabBox().getVerticesTableField().getTable().addRow(row);
+      }
+      for (EgtGraphWeightedDirectedEdge edge : getGraph().getEdges()) {
+        ITableRow row = getEdgesTabBox().getEdgesTableField().getTable().createRow();
+        getEdgesTabBox().getEdgesTableField().getEgtGraphWeightedDirectedEdgeColumn().setValue(row, edge);
+        getEdgesTabBox().getEdgesTableField().getTable().addRow(row);
+      }
+      getGraphSvgSourceField().setValue(getGraph().getSvgString());
     }
-    for (EgtGraphWeightedDirectedEdge edge : getGraph().getEdges()) {
-      ITableRow row = getEdgesTabBox().getEdgesTableField().getTable().createRow();
-      getEdgesTabBox().getEdgesTableField().getEgtGraphWeightedDirectedEdgeColumn().setValue(row, edge);
-      getEdgesTabBox().getEdgesTableField().getTable().addRow(row);
+  }
+
+  public void populateSimulationChangedVertex(EgtGraphVertex vertex) throws ProcessingException {
+    for (ITableRow row : getVerticesTabBox().getVerticesTableField().getTable().getRows()) {
+      if (CompareUtility.equals(getVerticesTabBox().getVerticesTableField().getEgtGraphVertecColumn().getValue(row).getId(), vertex.getId())) {
+        getVerticesTabBox().getVerticesTableField().getEgtGraphVertecColumn().setValue(row, vertex);
+        getVerticesTabBox().getVerticesTableField().getTable().decorate(row);
+      }
     }
-    getGraphSvgSourceField().setValue(getGraph().getSvgString());
+    if (!CompareUtility.equals(getGraph(), null)) {
+      getGraphSvgSourceField().setValue(getGraph().getSvgString());
+    }
   }
 
   private SVGDocument getDocument(String content) throws IOException, ProcessingException {

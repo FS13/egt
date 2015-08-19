@@ -30,12 +30,25 @@ public class EgtSpeciesCodeType extends AbstractCodeType<Long, Long> {
 
   public interface IEgtSpeciesCode {
     EgtSpecies getEnum();
+
+    Long getId();
+
+    String getText();
   }
 
   public Long getCodeIdByEnum(EgtSpecies e) {
     for (ICode<Long> c : getCodes()) {
       if (CompareUtility.equals(((IEgtSpeciesCode) c).getEnum(), e)) {
         return c.getId();
+      }
+    }
+    return null;
+  }
+
+  public IEgtSpeciesCode getCodeByEnum(EgtSpecies e) {
+    for (ICode<Long> c : getCodes()) {
+      if (CompareUtility.equals(((IEgtSpeciesCode) c).getEnum(), e)) {
+        return (IEgtSpeciesCode) c;
       }
     }
     return null;

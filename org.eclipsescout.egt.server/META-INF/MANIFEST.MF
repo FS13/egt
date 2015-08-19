@@ -6,6 +6,7 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-ClassPath: .
 Bundle-Activator: org.eclipsescout.egt.server.Activator
 Export-Package: org.eclipsescout.egt.server,
+ org.eclipsescout.egt.server.graph,
  org.eclipsescout.egt.server.services,
  org.eclipsescout.egt.server.services.common.security
 Require-Bundle: org.eclipse.core.runtime,

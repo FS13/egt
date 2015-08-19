@@ -23,6 +23,10 @@
             factory="org.eclipse.scout.rt.client.services.ClientProxyServiceFactory"
             class="org.eclipsescout.egt.shared.graph.IEgtGraphProcessService">
       </proxy>
+      <proxy
+            factory="org.eclipse.scout.rt.client.services.ClientProxyServiceFactory"
+            class="org.eclipsescout.egt.shared.graph.IEgtGraphLookupService">
+      </proxy>
    </extension>
 
 </plugin>
