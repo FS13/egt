@@ -486,14 +486,15 @@ public class EgtGraphDetailForm extends AbstractForm implements IEgtPageForm {
                   MessageBox.showOkMessage(TEXTS.get("EGTFS"), null, TEXTS.get("PleaseSelectVertex"));
                 }
                 else {
-                  EgtGraphVertex vertex = getVerticesTableField().getEgtGraphVertecColumn().getSelectedValue();
-                  if (isXDirection()) {
-                    vertex.setX(vertex.getX() + (getOrientation() * getDistance()));
+                  for (EgtGraphVertex vertex : getVerticesTableField().getEgtGraphVertecColumn().getSelectedValues()) {
+                    if (isXDirection()) {
+                      vertex.setX(vertex.getX() + (getOrientation() * getDistance()));
+                    }
+                    if (isYDirection()) {
+                      vertex.setY(vertex.getY() + (getOrientation() * getDistance()));
+                    }
+                    changeVertex(vertex);
                   }
-                  if (isYDirection()) {
-                    vertex.setY(vertex.getY() + (getOrientation() * getDistance()));
-                  }
-                  changeVertex(vertex);
                 }
               }
 
@@ -1126,7 +1127,10 @@ public class EgtGraphDetailForm extends AbstractForm implements IEgtPageForm {
     }
   }
 
-  public void populateSimulationChangedVertex(EgtGraphVertex vertex) throws ProcessingException {
+  public void populateSimulationUpdateEdge(EgtGraphWeightedDirectedEdge edge) throws ProcessingException {
+    edge.setHighlight(true);
+    edge.updateSvgText();
+    EgtGraphVertex vertex = edge.getTo();
     for (ITableRow row : getVerticesTabBox().getVerticesTableField().getTable().getRows()) {
       if (CompareUtility.equals(getVerticesTabBox().getVerticesTableField().getEgtGraphVertecColumn().getValue(row).getId(), vertex.getId())) {
         getVerticesTabBox().getVerticesTableField().getEgtGraphVertecColumn().setValue(row, vertex);
@@ -1136,6 +1140,9 @@ public class EgtGraphDetailForm extends AbstractForm implements IEgtPageForm {
     if (!CompareUtility.equals(getGraph(), null)) {
       getGraphSvgSourceField().setValue(getGraph().getSvgString());
     }
+    edge.setHighlight(false);
+    edge.updateSvgText();
+    requestFocus(getVerticesTabBox());
   }
 
   private SVGDocument getDocument(String content) throws IOException, ProcessingException {

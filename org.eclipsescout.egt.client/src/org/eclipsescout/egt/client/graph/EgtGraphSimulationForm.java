@@ -511,7 +511,7 @@ public class EgtGraphSimulationForm extends EgtGraphForm implements IEgtPageForm
 
       public FitnessColorBox getFitnessColorBoxByCode(IEgtSpeciesCode code) {
         for (IFormField field : getAllFields()) {
-          if (field instanceof FitnessColorBox && CompareUtility.equals(((FitnessColorBox) field).getCode(), code)) {
+          if (field instanceof FitnessColorBox && CompareUtility.equals(((FitnessColorBox) field).getCode().getId(), code.getId())) {
             return (FitnessColorBox) field;
           }
         }

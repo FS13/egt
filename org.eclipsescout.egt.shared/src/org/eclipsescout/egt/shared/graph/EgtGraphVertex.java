@@ -15,6 +15,7 @@ public class EgtGraphVertex {
   private int m_y;
   private int m_radius;
   private EgtSpecies m_species;
+  private EgtSpecies m_oldSpecies;
   private double m_fitness;
 
   private String m_svgText;
@@ -85,6 +86,14 @@ public class EgtGraphVertex {
     }
   }
 
+  public EgtSpecies getOldSpecies() {
+    return m_oldSpecies;
+  }
+
+  public void setOldSpecies(EgtSpecies species) {
+    m_oldSpecies = species;
+  }
+
   public double getFitness() {
     return m_fitness;
   }
@@ -104,7 +113,7 @@ public class EgtGraphVertex {
   private String buildSvgText() {
     return "<g>"
         + "  <circle "
-        + "id= \"" + getId() + "\" "
+        + "id=\"" + getId() + "\" "
         + "cx=\"" + getX() + "\" "
         + "cy=\"" + getY() + "\" "
         + "r=\"" + getRadius() + "\" "
@@ -112,7 +121,7 @@ public class EgtGraphVertex {
         + "stroke-width=\"" + (getRadius() * 0.1) + "\" "
         + "fill=\"" + getSpecies().getColor() + "\" "
         + "/>" + "\n"
-        + "  <text x=\"" + getX() + "\" y=\"" + (getY() + (getRadius() * 0.3)) + "\" style=\"font-family: Arial; font-size: " + (getRadius() * 0.8) + "; " + (getSpecies() == EgtSpecies.BLACK ? "fill: #FFFFFF; " : "") + "text-anchor: middle\">" + getId() + "</text>" + "\n"
+        + "  <text id=\"" + getId() + "text" + "\" x=\"" + getX() + "\" y=\"" + (getY() + (getRadius() * 0.3)) + "\" style=\"font-family: Arial; font-size: " + (getRadius() * 0.8) + "; " + (getSpecies() == EgtSpecies.BLACK ? "fill: #FFFFFF; " : "") + "text-anchor: middle\">" + getId() + "</text>" + "\n"
         + "</g>";
   }
 

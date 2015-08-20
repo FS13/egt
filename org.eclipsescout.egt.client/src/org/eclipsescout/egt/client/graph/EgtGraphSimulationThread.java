@@ -14,6 +14,7 @@ import org.eclipse.scout.rt.client.ClientSyncJob;
 import org.eclipse.scout.rt.client.IClientSession;
 import org.eclipse.scout.rt.shared.services.common.code.CODES;
 import org.eclipse.scout.rt.shared.services.common.code.ICode;
+import org.eclipsescout.egt.client.ClientSession;
 import org.eclipsescout.egt.shared.graph.EgtGraphVertex;
 import org.eclipsescout.egt.shared.graph.EgtGraphWeightedDirectedEdge;
 import org.eclipsescout.egt.shared.graph.EgtSpeciesCodeType;
@@ -35,13 +36,13 @@ public class EgtGraphSimulationThread extends Thread {
   }
 
   private class EgtGraphSimulationClientSyncJob extends ClientSyncJob {
-    protected EgtGraphVertex v;
+    protected EgtGraphWeightedDirectedEdge e;
     protected int t;
     protected IEgtSpeciesCode c;
 
-    public EgtGraphSimulationClientSyncJob(String name, IClientSession session, EgtGraphVertex vertex, IEgtSpeciesCode code, int timeSteps) {
+    public EgtGraphSimulationClientSyncJob(String name, IClientSession session, EgtGraphWeightedDirectedEdge edge, IEgtSpeciesCode code, int timeSteps) {
       super(name, session);
-      v = vertex;
+      e = edge;
       t = timeSteps;
       c = code;
     }
@@ -209,6 +210,7 @@ public class EgtGraphSimulationThread extends Thread {
     }
 
     for (EgtGraphVertex vertex : m_simulationForm.getGraphDetailFormField().getInnerForm().getGraph().getVertices()) {
+      vertex.setOldSpecies(vertex.getSpecies());
       IEgtSpeciesCode c = CODES.getCodeType(EgtSpeciesCodeType.class).getCodeByEnum(vertex.getSpecies());
 
       double f = focl.getFitnessOfColor(c).getFitness();
@@ -251,6 +253,8 @@ public class EgtGraphSimulationThread extends Thread {
       fitnessSum = fitnessSum - focl.getFitnessOfColor(updateVertexSpeciesBefore).getFitness();
       nocl.subOneFromColor(updateVertexSpeciesBefore);
 
+      updateVertex.setOldSpecies(updateVertex.getSpecies());
+
       updateVertex.setSpecies(selectedVertex.getSpecies());
       IEgtSpeciesCode updateVertexSpeciesAfter = CODES.getCodeType(EgtSpeciesCodeType.class).getCodeByEnum(updateVertex.getSpecies());
       updateVertex.setFitness(focl.getFitnessOfColor(updateVertexSpeciesAfter).getFitness());
@@ -259,13 +263,13 @@ public class EgtGraphSimulationThread extends Thread {
 
       timeSteps++;
 
-      new EgtGraphSimulationClientSyncJob("updateGraphAfterStep", ClientSyncJob.getCurrentSession(), updateVertex, null, timeSteps) {
+      new EgtGraphSimulationClientSyncJob("updateGraphAfterStep", ClientSyncJob.getCurrentSession(), selectedEdge, null, timeSteps) {
         @Override
         protected void runVoid(IProgressMonitor monitor) throws Throwable {
           m_simulationForm.getGraphDetailFormField().getInnerForm().getGraph().setChanging(true);
-          m_simulationForm.getGraphDetailFormField().getInnerForm().getGraph().changeVertex(v);
+          m_simulationForm.getGraphDetailFormField().getInnerForm().getGraph().changeVertex(e.getTo());
           try {
-            m_simulationForm.getGraphDetailFormField().getInnerForm().populateSimulationChangedVertex(v);
+            m_simulationForm.getGraphDetailFormField().getInnerForm().populateSimulationUpdateEdge(e);
           }
           catch (ProcessingException e) {
             e.printStackTrace();
@@ -274,6 +278,8 @@ public class EgtGraphSimulationThread extends Thread {
           m_simulationForm.getAnalysisBox().getTimeStepsField().setValue(t);
         }
       }.schedule();
+
+      ClientSession.getEnvironment().getDisplay().asyncExec(null);
 
       try {
         sleep(1500);
@@ -298,5 +304,4 @@ public class EgtGraphSimulationThread extends Thread {
       }.schedule();
     }
   }
-
 }

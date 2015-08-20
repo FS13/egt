@@ -3,6 +3,8 @@
  */
 package org.eclipsescout.egt.shared.graph;
 
+import org.eclipse.scout.commons.StringUtility;
+
 /**
  * @author user
  */
@@ -16,13 +18,21 @@ public enum EgtSpecies {
   YELLOW("#FFFF00");
 
   private final String color;
+  private final String complementaryColor;
 
   EgtSpecies(String color) {
     this.color = color;
+    String comp = StringUtility.replace(color, "0", "x");
+    comp = StringUtility.replace(comp, "F", "0");
+    this.complementaryColor = StringUtility.replace(comp, "x", "F");
   }
 
   public String getColor() {
     return color;
+  }
+
+  public String getComplementaryColor() {
+    return complementaryColor;
   }
 
 }
