@@ -26,6 +26,7 @@ import org.eclipse.scout.rt.client.ui.form.fields.button.AbstractCloseButton;
 import org.eclipse.scout.rt.client.ui.form.fields.doublefield.AbstractDoubleField;
 import org.eclipse.scout.rt.client.ui.form.fields.groupbox.AbstractGroupBox;
 import org.eclipse.scout.rt.client.ui.form.fields.integerfield.AbstractIntegerField;
+import org.eclipse.scout.rt.client.ui.form.fields.labelfield.AbstractLabelField;
 import org.eclipse.scout.rt.client.ui.form.fields.smartfield.AbstractSmartField;
 import org.eclipse.scout.rt.extension.client.ui.action.menu.AbstractExtensibleMenu;
 import org.eclipse.scout.rt.shared.TEXTS;
@@ -101,7 +102,7 @@ public class EgtGraphSimulationForm extends EgtGraphForm implements IEgtPageForm
     changeVisibilityOfFitnessColors();
 
     setPaused(false);
-    setStopped(false);
+    setStopped(true);
 
     getAnalysisBox().getTimeStepsField().setValue(0);
 
@@ -124,9 +125,12 @@ public class EgtGraphSimulationForm extends EgtGraphForm implements IEgtPageForm
         double fitness = NumberUtility.nvl(getSimulationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c).getFitnessField().getValue(), 0.0);
         getSimulationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c).getFitnessField().setValue(fitness);
         getSimulationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c).getScaledFitnessField().setEnabled(false);
+
+        getAnalysisBox().getLifetimeAnalysisBox().getLifetimeAnalysisColorBoxByCode((IEgtSpeciesCode) c).setVisible(true);
       }
       else {
         getSimulationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c).setVisible(false);
+        getAnalysisBox().getLifetimeAnalysisBox().getLifetimeAnalysisColorBoxByCode((IEgtSpeciesCode) c).setVisible(false);
       }
     }
     getSimulationBox().getFitnessBox().computeScaledFitness();
@@ -180,7 +184,7 @@ public class EgtGraphSimulationForm extends EgtGraphForm implements IEgtPageForm
         changeVisibilityOfFitnessColors();
 
         setPaused(false);
-        setStopped(false);
+        setStopped(true);
 
         getAnalysisBox().getTimeStepsField().setValue(0);
 
@@ -611,6 +615,15 @@ public class EgtGraphSimulationForm extends EgtGraphForm implements IEgtPageForm
       return getFieldByClass(TimeStepsField.class);
     }
 
+    public LifetimeAnalysisBox getLifetimeAnalysisBox() {
+      return getFieldByClass(LifetimeAnalysisBox.class);
+    }
+
+    @Override
+    protected int getConfiguredGridColumnCount() {
+      return 1;
+    }
+
     @Order(10.0)
     public class TimeStepsField extends AbstractIntegerField {
 
@@ -622,6 +635,144 @@ public class EgtGraphSimulationForm extends EgtGraphForm implements IEgtPageForm
       @Override
       protected boolean getConfiguredEnabled() {
         return false;
+      }
+
+    }
+
+    @Order(20.0)
+    public class LifetimeAnalysisBox extends AbstractGroupBox {
+
+      @Override
+      protected void injectFieldsInternal(List<IFormField> fieldList) {
+        for (ICode<Long> c : CODES.getCodeType(EgtSpeciesCodeType.class).getCodes()) {
+          fieldList.add(new LifetimeAnalysisColorBox((IEgtSpeciesCode) c) {
+          });
+        }
+      }
+
+      @Override
+      protected int getConfiguredGridColumnCount() {
+        return 1;
+      }
+
+      @Override
+      protected int getConfiguredGridW() {
+        return 2;
+      }
+
+      @Override
+      protected boolean getConfiguredBorderVisible() {
+        return false;
+      }
+
+      public LifetimeAnalysisColorBox getLifetimeAnalysisColorBoxByCode(IEgtSpeciesCode code) {
+        for (IFormField field : getAllFields()) {
+          if (field instanceof LifetimeAnalysisColorBox && CompareUtility.equals(((LifetimeAnalysisColorBox) field).getCode().getId(), code.getId())) {
+            return (LifetimeAnalysisColorBox) field;
+          }
+        }
+        return null;
+      }
+
+      abstract class LifetimeAnalysisColorBox extends AbstractGroupBox {
+        private final IEgtSpeciesCode m_code;
+
+        public LifetimeAnalysisColorBox(IEgtSpeciesCode code) {
+          super(false);
+          m_code = code;
+          callInitializer();
+        }
+
+        public IEgtSpeciesCode getCode() {
+          return m_code;
+        }
+
+        @Override
+        protected int getConfiguredGridColumnCount() {
+          return 4;
+        }
+
+        @Override
+        protected int getConfiguredGridW() {
+          return 2;
+        }
+
+        @Override
+        protected boolean getConfiguredBorderVisible() {
+          return false;
+        }
+
+        public ColorNameField getColorNameField() {
+          return getFieldByClass(ColorNameField.class);
+        }
+
+        public AliveUntilField getAliveUntilField() {
+          return getFieldByClass(AliveUntilField.class);
+        }
+
+        public MaxNumberOfInividualsField getMaxNumberOfIndividualsField() {
+          return getFieldByClass(MaxNumberOfInividualsField.class);
+        }
+
+        public MinNumberOfIndividualsField getMinNumberOfIndividualsField() {
+          return getFieldByClass(MinNumberOfIndividualsField.class);
+        }
+
+        @Order(10.0)
+        public class ColorNameField extends AbstractLabelField {
+
+          @Override
+          protected String getConfiguredLabel() {
+            return m_code.getText() + ":";
+          }
+
+        }
+
+        @Order(20.0)
+        public class AliveUntilField extends AbstractIntegerField {
+
+          @Override
+          protected String getConfiguredLabel() {
+            return TEXTS.get("AliveUntil");
+          }
+
+          @Override
+          protected boolean getConfiguredEnabled() {
+            return false;
+          }
+
+        }
+
+        @Order(30.0)
+        public class MaxNumberOfInividualsField extends AbstractIntegerField {
+
+          @Override
+          protected String getConfiguredLabel() {
+            return TEXTS.get("MaxNumberOfIndividuals");
+          }
+
+          @Override
+          protected boolean getConfiguredEnabled() {
+            return false;
+          }
+
+        }
+
+        @Order(40.0)
+        public class MinNumberOfIndividualsField extends AbstractIntegerField {
+
+          @Override
+          protected String getConfiguredLabel() {
+            return TEXTS.get("MinNumberOfIndividuals");
+          }
+
+          @Override
+          protected boolean getConfiguredEnabled() {
+            return false;
+          }
+
+        }
+
       }
 
     }
