@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: org.eclipsescout.egt.client.jama
+Bundle-Version: 1.0.0.qualifier
+Bundle-ClassPath: lib/Jama-1.0.3.jar
+Export-Package: Jama,
+ Jama.examples,
+ Jama.test,
+ Jama.util
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7

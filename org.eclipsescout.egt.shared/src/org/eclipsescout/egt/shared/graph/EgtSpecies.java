@@ -15,7 +15,8 @@ public enum EgtSpecies {
   RED("#FF0000"),
   BLUE("#0000FF"),
   GREEN("#00FF00"),
-  YELLOW("#FFFF00");
+  YELLOW("#FFFF00"),
+  GREY("#9D9D9D");
 
   private final String color;
   private final String complementaryColor;

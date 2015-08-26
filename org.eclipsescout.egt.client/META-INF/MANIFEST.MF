@@ -11,7 +11,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.scout.rt.client;visibility:=reexport,
  org.eclipse.scout.rt.extension.client;visibility:=reexport,
  org.eclipsescout.egt.shared,
- org.eclipse.scout.svg.client
+ org.eclipse.scout.svg.client,
+ org.eclipsescout.egt.client.jama
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: org.eclipse.rap.rwt.lifecycle;version="2.3.2",
  org.eclipse.scout.rt.ui.rap,

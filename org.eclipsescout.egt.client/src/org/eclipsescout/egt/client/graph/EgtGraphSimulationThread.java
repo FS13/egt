@@ -3,9 +3,6 @@
  */
 package org.eclipsescout.egt.client.graph;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.scout.commons.CompareUtility;
 import org.eclipse.scout.commons.exception.ProcessingException;
@@ -19,6 +16,10 @@ import org.eclipsescout.egt.shared.graph.EgtGraphVertex;
 import org.eclipsescout.egt.shared.graph.EgtGraphWeightedDirectedEdge;
 import org.eclipsescout.egt.shared.graph.EgtSpeciesCodeType;
 import org.eclipsescout.egt.shared.graph.EgtSpeciesCodeType.IEgtSpeciesCode;
+import org.eclipsescout.egt.shared.graph.FitnessOfColorList;
+import org.eclipsescout.egt.shared.graph.LifetimeAnalysisOfColorList;
+import org.eclipsescout.egt.shared.graph.NumberOfColorList;
+import org.eclipsescout.egt.shared.graph.NumberOfColorList.NumberOfColor;
 
 /**
  * @author user
@@ -41,258 +42,12 @@ public class EgtGraphSimulationThread extends Thread {
     protected IEgtSpeciesCode c;
     protected LifetimeAnalysisOfColorList laocl;
 
-    public EgtGraphSimulationClientSyncJob(String name, IClientSession session, EgtGraphWeightedDirectedEdge edge, IEgtSpeciesCode code, int timeSteps, org.eclipsescout.egt.client.graph.EgtGraphSimulationThread.LifetimeAnalysisOfColorList laocl) {
+    public EgtGraphSimulationClientSyncJob(String name, IClientSession session, EgtGraphWeightedDirectedEdge edge, IEgtSpeciesCode code, int timeSteps, LifetimeAnalysisOfColorList laocl) {
       super(name, session);
       e = edge;
       t = timeSteps;
       c = code;
       this.laocl = laocl;
-    }
-
-  }
-
-  private class NumberOfColorList {
-
-    private class NumberOfColor {
-      private IEgtSpeciesCode m_code;
-      private int m_count;
-
-      public NumberOfColor(IEgtSpeciesCode code, int count) {
-        m_code = code;
-        m_count = count;
-      }
-
-      public IEgtSpeciesCode getColor() {
-        return m_code;
-      }
-
-      public int getCount() {
-        return m_count;
-      }
-
-      public void setCount(int count) {
-        m_count = count;
-      }
-    }
-
-    List<NumberOfColor> m_numberOfColors = new ArrayList<NumberOfColor>();
-
-    public NumberOfColorList() {
-    }
-
-    public void addOneToColor(IEgtSpeciesCode code) {
-      NumberOfColor noc = getNumberOfColor(code);
-      if (CompareUtility.equals(noc, null)) {
-        noc = new NumberOfColor(code, 0);
-        m_numberOfColors.add(noc);
-      }
-      noc.setCount(noc.getCount() + 1);
-    }
-
-    public void subOneFromColor(IEgtSpeciesCode code) {
-      NumberOfColor noc = getNumberOfColor(code);
-      if (CompareUtility.equals(noc, null)) {
-        noc = new NumberOfColor(code, 0);
-      }
-      noc.setCount(noc.getCount() - 1);
-      if (CompareUtility.equals(noc.getCount(), 0)) {
-        m_numberOfColors.remove(noc);
-      }
-    }
-
-    public boolean removeNumberOfColor(IEgtSpeciesCode code) {
-      NumberOfColor noc = getNumberOfColor(code);
-      if (!CompareUtility.equals(noc, null)) {
-        return m_numberOfColors.remove(noc);
-      }
-      return false;
-    }
-
-    public NumberOfColor getNumberOfColor(IEgtSpeciesCode code) {
-      for (NumberOfColor noc : m_numberOfColors) {
-        if (CompareUtility.equals(noc.getColor(), code)) {
-          return noc;
-        }
-      }
-      return null;
-    }
-
-    public List<NumberOfColor> getNumberOfColorList() {
-      return m_numberOfColors;
-    }
-
-    public boolean isStationaryState() {
-      return CompareUtility.isOneOf(m_numberOfColors.size(), 0, 1);
-    }
-
-  }
-
-  private class FitnessOfColorList {
-
-    private class FitnessOfColor {
-      private IEgtSpeciesCode m_code;
-      private double m_fitness;
-
-      public FitnessOfColor(IEgtSpeciesCode code, double fitness) {
-        m_code = code;
-        m_fitness = fitness;
-      }
-
-      public IEgtSpeciesCode getColor() {
-        return m_code;
-      }
-
-      public double getFitness() {
-        return m_fitness;
-      }
-
-      public void setFitness(double fitness) {
-        m_fitness = fitness;
-      }
-    }
-
-    List<FitnessOfColor> m_fitnessOfColors = new ArrayList<FitnessOfColor>();
-
-    public FitnessOfColorList() {
-    }
-
-    public void setFitnessForColor(IEgtSpeciesCode code, double fitness) {
-      FitnessOfColor foc = getFitnessOfColor(code);
-      if (CompareUtility.equals(foc, null)) {
-        foc = new FitnessOfColor(code, fitness);
-        m_fitnessOfColors.add(foc);
-      }
-      foc.setFitness(fitness);
-    }
-
-    public boolean removeNumberOfColor(IEgtSpeciesCode code) {
-      FitnessOfColor foc = getFitnessOfColor(code);
-      if (!CompareUtility.equals(foc, null)) {
-        return m_fitnessOfColors.remove(foc);
-      }
-      return false;
-    }
-
-    public FitnessOfColor getFitnessOfColor(IEgtSpeciesCode code) {
-      for (FitnessOfColor foc : m_fitnessOfColors) {
-        if (CompareUtility.equals(foc.getColor(), code)) {
-          return foc;
-        }
-      }
-      return null;
-    }
-
-  }
-
-  private class LifetimeAnalysisOfColorList {
-
-    private class LifetimeAnalysisOfColor {
-      private IEgtSpeciesCode m_code;
-      private int m_aliveUntil;
-      private int m_max;
-      private int m_min;
-
-      public LifetimeAnalysisOfColor(IEgtSpeciesCode code) {
-        m_code = code;
-        m_aliveUntil = 0;
-        m_max = 0;
-        m_min = 0;
-      }
-
-      public IEgtSpeciesCode getColor() {
-        return m_code;
-      }
-
-      public int getAliveUntil() {
-        return m_aliveUntil;
-      }
-
-      public void setAliveUntil(int aliveUntil) {
-        m_aliveUntil = aliveUntil;
-      }
-
-      public int getMax() {
-        return m_max;
-      }
-
-      public void setMax(int max) {
-        m_max = max;
-      }
-
-      public int getMin() {
-        return m_min;
-      }
-
-      public void setMin(int min) {
-        m_min = min;
-      }
-    }
-
-    List<LifetimeAnalysisOfColor> m_lifetimeAnalysisOfColors = new ArrayList<LifetimeAnalysisOfColor>();
-
-    public LifetimeAnalysisOfColorList() {
-    }
-
-    public void updateLifeTimeAnalysisForColor(IEgtSpeciesCode code, int timeStep, int numberOfIndividuals) {
-      updateLifeTimeAnalysisTimeStepForColor(code, timeStep);
-      updateLifeTimeAnalysisNumberOfIndividualsForColor(code, numberOfIndividuals);
-    }
-
-    public void updateLifeTimeAnalysisTimeStepForColor(IEgtSpeciesCode code, int timeStep) {
-      LifetimeAnalysisOfColor laoc = getLifetimeAnalysisOfColor(code);
-      if (CompareUtility.equals(laoc, null)) {
-        laoc = new LifetimeAnalysisOfColor(code);
-        m_lifetimeAnalysisOfColors.add(laoc);
-      }
-      if (!CompareUtility.equals(laoc.getMin(), 0)) {
-        laoc.setAliveUntil(timeStep);
-      }
-    }
-
-    public void updateLifeTimeAnalysisNumberOfIndividualsForColor(IEgtSpeciesCode code, int numberOfIndividuals) {
-      LifetimeAnalysisOfColor laoc = getLifetimeAnalysisOfColor(code);
-      if (CompareUtility.equals(laoc, null)) {
-        laoc = new LifetimeAnalysisOfColor(code);
-        m_lifetimeAnalysisOfColors.add(laoc);
-      }
-      laoc.setMax(Math.max(laoc.getMax(), numberOfIndividuals));
-      laoc.setMin(Math.min(laoc.getMin(), numberOfIndividuals));
-    }
-
-    public void setInitialLifeTimeAnalysisForColor(IEgtSpeciesCode code, int timeStep, int numberOfIndividuals) {
-      setInitialLifeTimeAnalysisForColor(code, timeStep, numberOfIndividuals, numberOfIndividuals);
-    }
-
-    public void setInitialLifeTimeAnalysisForColor(IEgtSpeciesCode code, int timeStep, int maxNumberOfIndividuals, int minNumberOfIndividuals) {
-      LifetimeAnalysisOfColor laoc = getLifetimeAnalysisOfColor(code);
-      if (CompareUtility.equals(laoc, null)) {
-        laoc = new LifetimeAnalysisOfColor(code);
-        m_lifetimeAnalysisOfColors.add(laoc);
-      }
-      laoc.setAliveUntil(timeStep);
-      laoc.setMax(maxNumberOfIndividuals);
-      laoc.setMin(minNumberOfIndividuals);
-    }
-
-    public boolean removeNumberOfColor(IEgtSpeciesCode code) {
-      LifetimeAnalysisOfColor laoc = getLifetimeAnalysisOfColor(code);
-      if (!CompareUtility.equals(laoc, null)) {
-        return m_lifetimeAnalysisOfColors.remove(laoc);
-      }
-      return false;
-    }
-
-    public LifetimeAnalysisOfColor getLifetimeAnalysisOfColor(IEgtSpeciesCode code) {
-      for (LifetimeAnalysisOfColor laoc : m_lifetimeAnalysisOfColors) {
-        if (CompareUtility.equals(laoc.getColor(), code)) {
-          return laoc;
-        }
-      }
-      return null;
-    }
-
-    public List<LifetimeAnalysisOfColor> getLifetimeAnalysisOfColorList() {
-      return m_lifetimeAnalysisOfColors;
     }
 
   }
@@ -392,7 +147,7 @@ public class EgtGraphSimulationThread extends Thread {
         laocl.updateLifeTimeAnalysisTimeStepForColor(updateVertexSpeciesBefore, timeSteps);
         laocl.updateLifeTimeAnalysisNumberOfIndividualsForColor(updateVertexSpeciesBefore, 0);
       }
-      for (org.eclipsescout.egt.client.graph.EgtGraphSimulationThread.NumberOfColorList.NumberOfColor noc : nocl.getNumberOfColorList()) {
+      for (NumberOfColor noc : nocl.getNumberOfColorList()) {
         laocl.updateLifeTimeAnalysisTimeStepForColor(noc.getColor(), timeSteps);
         laocl.updateLifeTimeAnalysisNumberOfIndividualsForColor(noc.getColor(), noc.getCount());
       }
