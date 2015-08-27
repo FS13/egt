@@ -442,7 +442,7 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
           }
         }
         getTable().resetColumnOrder();
-        for (int[] state : getIndexMapList().getAllStates()) {
+        for (int[] state : getIndexMapList().getAllColorStates()) {
           ITableRow row = getTable().createRow();
           getTable().getStateColumn().setValue(row, state);
           getTable().addRow(row);
@@ -623,14 +623,14 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
     if (!CompareUtility.equals(getGraphDetailFormField().getInnerForm().getGraph(), null)) {
       List<IEgtSpeciesCode> list = new ArrayList<IEgtSpeciesCode>();
       if (!CompareUtility.equals(getConfigurationBox().getSpeciesBox().getCalculateForSpeciesField().getValue(), null)) {
-        getIndexMapList().buildIndexMapList(getConfigurationBox().getSpeciesBox().getAdditionalSpeciesField().getCheckedKeyCount() + 1, getGraphDetailFormField().getInnerForm().getGraph().getVertices().size());
         list.add((IEgtSpeciesCode) CODES.getCodeType(EgtSpeciesCodeType.class).getCode(getConfigurationBox().getSpeciesBox().getCalculateForSpeciesField().getValue()));
+        for (Long key : getConfigurationBox().getSpeciesBox().getAdditionalSpeciesField().getCheckedKeys()) {
+          list.add((IEgtSpeciesCode) CODES.getCodeType(EgtSpeciesCodeType.class).getCode(key));
+        }
+        getIndexMapList().buildIndexMapList(getGraphDetailFormField().getInnerForm().getGraph().getVertices().size(), list);
       }
       else {
         setIndexMapList(new IndexMapList());
-      }
-      for (Long key : getConfigurationBox().getSpeciesBox().getAdditionalSpeciesField().getCheckedKeys()) {
-        list.add((IEgtSpeciesCode) CODES.getCodeType(EgtSpeciesCodeType.class).getCode(key));
       }
       setSpeciesList(list);
 
