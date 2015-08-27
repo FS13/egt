@@ -67,6 +67,10 @@ public class EgtGraphForm extends AbstractForm {
     startInternal(new NewHandler());
   }
 
+  public void startCopy() throws ProcessingException {
+    startInternal(new CopyHandler());
+  }
+
   public CancelButton getCancelButton() {
     return getFieldByClass(CancelButton.class);
   }
@@ -193,6 +197,27 @@ public class EgtGraphForm extends AbstractForm {
       exportFormData(formData);
       formData = service.create(formData);
 
+    }
+  }
+
+  public class CopyHandler extends NewHandler {
+
+    @Override
+    protected void execLoad() throws ProcessingException {
+      IEgtGraphProcessService service = SERVICES.getService(IEgtGraphProcessService.class);
+      EgtGraphFormData formData = new EgtGraphFormData();
+      exportFormData(formData);
+      formData = service.load(formData);
+      formData.getGraphName().setValue(formData.getGraphName().getValue() + " - " + TEXTS.get("Copy0"));
+      importFormData(formData);
+
+      try {
+        getGraphDetailFormField().getInnerForm().setGraph(GraphUtility.buildGraphFromSvgText(getSvgText()));
+        getGraphDetailFormField().getInnerForm().populateGraph();
+      }
+      catch (IOException e) {
+        e.printStackTrace();
+      }
     }
   }
 }

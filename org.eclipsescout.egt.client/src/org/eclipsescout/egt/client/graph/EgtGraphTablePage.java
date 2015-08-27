@@ -143,7 +143,7 @@ public class EgtGraphTablePage extends AbstractPageWithTable<Table> {
     }
 
     @Order(220.0)
-    public class SeperatorMenu extends AbstractExtensibleMenu {
+    public class Seperator1Menu extends AbstractExtensibleMenu {
       @Override
       protected boolean getConfiguredSeparator() {
         return true;
@@ -152,6 +152,42 @@ public class EgtGraphTablePage extends AbstractPageWithTable<Table> {
     }
 
     @Order(230.0)
+    public class CopyMenu extends AbstractExtensibleMenu {
+
+      @Override
+      protected String getConfiguredText() {
+        return TEXTS.get("Copy_");
+      }
+
+      @Override
+      protected Set<? extends IMenuType> getConfiguredMenuTypes() {
+        return CollectionUtility.hashSet(TableMenuType.SingleSelection);
+      }
+
+      @Override
+      public void execAction() throws ProcessingException {
+        EgtGraphForm form = new EgtGraphForm();
+        form.setGraphNr(getGraphNrColumn().getSelectedValue());
+        form.startCopy();
+        form.waitFor();
+
+        if (form.isFormStored()) {
+          reloadPage();
+        }
+      }
+
+    }
+
+    @Order(240.0)
+    public class Seperator2Menu extends AbstractExtensibleMenu {
+      @Override
+      protected boolean getConfiguredSeparator() {
+        return true;
+      }
+
+    }
+
+    @Order(250.0)
     public class DeleteMenu extends AbstractExtensibleMenu {
 
       @Override
