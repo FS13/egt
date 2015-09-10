@@ -18,7 +18,7 @@ public interface IEgtGraphProcessService extends IService {
    * @return
    * @throws org.eclipse.scout.commons.exception.ProcessingException
    */
-  EgtGraphFormData create(EgtGraphFormData formData) throws ProcessingException;
+  EgtGraphFormData create(EgtGraphFormData formData, int numberOfVertices) throws ProcessingException;
 
   /**
    * @param formData
@@ -39,7 +39,7 @@ public interface IEgtGraphProcessService extends IService {
    * @return
    * @throws org.eclipse.scout.commons.exception.ProcessingException
    */
-  EgtGraphFormData store(EgtGraphFormData formData) throws ProcessingException;
+  EgtGraphFormData store(EgtGraphFormData formData, int numberOfVertices) throws ProcessingException;
 
   /**
    * @param graphNr
@@ -61,4 +61,10 @@ public interface IEgtGraphProcessService extends IService {
    * @throws ProcessingException
    */
   String getSvgTextForGraph(Long graphNr) throws ProcessingException;
+
+  /**
+   * @return
+   * @throws ProcessingException
+   */
+  int getMaxNumberOfVertices() throws ProcessingException;
 }

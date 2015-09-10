@@ -6,6 +6,7 @@ package org.eclipsescout.egt.server.graph;
 import java.util.List;
 
 import org.eclipse.scout.commons.exception.ProcessingException;
+import org.eclipse.scout.commons.holders.IntegerHolder;
 import org.eclipse.scout.commons.holders.NVPair;
 import org.eclipse.scout.commons.holders.StringHolder;
 import org.eclipse.scout.rt.server.services.common.jdbc.SQL;
@@ -19,13 +20,14 @@ import org.eclipsescout.egt.shared.graph.IEgtGraphProcessService;
 public class EgtGraphProcessService extends AbstractService implements IEgtGraphProcessService {
 
   @Override
-  public EgtGraphFormData create(EgtGraphFormData formData) throws ProcessingException {
+  public EgtGraphFormData create(EgtGraphFormData formData, int numberOfVertices) throws ProcessingException {
     SQL.insert(""
         + " INSERT INTO GRAPH "
-        + "             (NAME, SVG_TEXT) "
+        + "             (NAME, SVG_TEXT, NUMBER_OF_VERTICES) "
         + " VALUES "
-        + "             (:graphName, :svgText) "
-        , formData);
+        + "             (:graphName, :svgText, :numberOfVertices) "
+        , formData
+        , new NVPair("numberOfVertices", numberOfVertices));
     return formData;
   }
 
@@ -48,12 +50,15 @@ public class EgtGraphProcessService extends AbstractService implements IEgtGraph
   }
 
   @Override
-  public EgtGraphFormData store(EgtGraphFormData formData) throws ProcessingException {
+  public EgtGraphFormData store(EgtGraphFormData formData, int numberOfVertices) throws ProcessingException {
     SQL.update(""
         + " UPDATE GRAPH "
         + " SET    NAME = :graphName, "
-        + "        SVG_TEXT = :svgText "
-        + " WHERE  GRAPH_NR = :graphNr ", formData);
+        + "        SVG_TEXT = :svgText, "
+        + "        NUMBER_OF_VERTICES = :numberOfVertices "
+        + " WHERE  GRAPH_NR = :graphNr "
+        , formData
+        , new NVPair("numberOfVertices", numberOfVertices));
     return formData;
   }
 
@@ -85,6 +90,17 @@ public class EgtGraphProcessService extends AbstractService implements IEgtGraph
         , new NVPair("graphNr", graphNr)
         , new NVPair("svgText", svgText));
     return svgText.getValue();
+  }
+
+  @Override
+  public int getMaxNumberOfVertices() throws ProcessingException {
+    IntegerHolder maxNumberOfVertices = new IntegerHolder();
+    SQL.selectInto(""
+        + " SELECT MAX(NUMBER_OF_VERTICES) "
+        + " FROM   GRAPH "
+        + " INTO   :maxNumberOfVertices "
+        , new NVPair("maxNumberOfVertices", maxNumberOfVertices));
+    return maxNumberOfVertices.getValue();
   }
 
 }

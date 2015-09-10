@@ -163,7 +163,7 @@ public class EgtGraphForm extends AbstractForm {
       IEgtGraphProcessService service = SERVICES.getService(IEgtGraphProcessService.class);
       EgtGraphFormData formData = new EgtGraphFormData();
       exportFormData(formData);
-      formData = service.store(formData);
+      formData = service.store(formData, getGraphDetailFormField().getInnerForm().getGraph().getVertices().size());
 
     }
   }
@@ -195,7 +195,7 @@ public class EgtGraphForm extends AbstractForm {
       IEgtGraphProcessService service = SERVICES.getService(IEgtGraphProcessService.class);
       EgtGraphFormData formData = new EgtGraphFormData();
       exportFormData(formData);
-      formData = service.create(formData);
+      formData = service.create(formData, getGraphDetailFormField().getInnerForm().getGraph().getVertices().size());
 
     }
   }

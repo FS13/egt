@@ -143,6 +143,43 @@ public class IndexMapList {
       return m_list.get(digits[digits.length - 1]).getAllStateIndicesForColorState(digits);
     }
 
+    public List<IndexStatePair> getAllIndexStatePairs(List<IndexStatePair> list, IEgtSpeciesCode... species) {
+      if (!CompareUtility.equals(getList(), null)) {
+        IEgtSpeciesCode[] newDigits = new IEgtSpeciesCode[species.length + 1];
+        for (int i = 0; i < species.length; i++) {
+          newDigits[i] = species[i];
+        }
+        for (int i = 0; i < getList().size(); i++) {
+          list = getList().get(i).getAllIndexStatePairs(list, i, newDigits);
+        }
+      }
+      return list;
+    }
+
+    private List<IndexStatePair> getAllIndexStatePairs(List<IndexStatePair> list, int numberOfFirstSpecies, IEgtSpeciesCode... species) {
+      if (CompareUtility.equals(getList().size(), 0) && !CompareUtility.equals(getValue(), -1)) {
+        IndexStatePair isPair = new IndexStatePair();
+        isPair.setIndex(getValue());
+        isPair.setNumberOfFirstSpecies(numberOfFirstSpecies);
+        for (int i = 0; i < species.length; i++) {
+          isPair.addSpecies(species[i]);
+        }
+        list.add(isPair);
+        return list;
+      }
+      else if (!CompareUtility.equals(getList(), null)) {
+        IEgtSpeciesCode[] newDigits = new IEgtSpeciesCode[species.length + 1];
+        for (int i = 0; i < species.length; i++) {
+          newDigits[i] = species[i];
+        }
+        for (int i = 0; i < getList().size(); i++) {
+          newDigits[newDigits.length - 1] = speciesOfIndex(i);
+          list = getList().get(i).getAllIndexStatePairs(list, numberOfFirstSpecies, newDigits);
+        }
+      }
+      return list;
+    }
+
     public List<Integer> getAllStateIndicesForColorState(int... digits) {
       List<Integer> list = new ArrayList<Integer>();
       boolean isEnd = true;
@@ -158,6 +195,50 @@ public class IndexMapList {
         list.add(m_value);
       }
       return list;
+    }
+  }
+
+  public class IndexStatePair {
+
+    private int m_index;
+    private int m_numberOfFirstSpecies;
+    private IEgtSpeciesCode[] m_state;
+
+    public IndexStatePair() {
+    }
+
+    public void setIndex(int index) {
+      m_index = index;
+    }
+
+    public int getIndex() {
+      return m_index;
+    }
+
+    public void setNumberOfFirstSpecies(int numberOfFirstSpecies) {
+      m_numberOfFirstSpecies = numberOfFirstSpecies;
+    }
+
+    public int getNumberOfFirstSpecies() {
+      return m_numberOfFirstSpecies;
+    }
+
+    public void addSpecies(IEgtSpeciesCode species) {
+      if (CompareUtility.equals(m_state, null)) {
+        m_state = new IEgtSpeciesCode[]{species};
+      }
+      else {
+        IEgtSpeciesCode[] state = new IEgtSpeciesCode[m_state.length + 1];
+        for (int i = 0; i < m_state.length; i++) {
+          state[i] = m_state[i];
+        }
+        state[m_state.length] = species;
+        m_state = state;
+      }
+    }
+
+    public IEgtSpeciesCode[] getState() {
+      return m_state;
     }
   }
 
@@ -195,13 +276,13 @@ public class IndexMapList {
       if (CompareUtility.equals(m_species.get(m_species.size() - 1).getId(), species[i].getId())) {
         numberOfFirstSpecies++;
       }
-      digits[i + 1] = speciesIndexOf(species[i]);
+      digits[i + 1] = indexOfSpecies(species[i]);
     }
     digits[0] = numberOfFirstSpecies;
     return m_states.getIndexNumber(digits);
   }
 
-  public int speciesIndexOf(IEgtSpeciesCode species) {
+  public int indexOfSpecies(IEgtSpeciesCode species) {
     for (int i = 0; i < m_species.size(); i++) {
       if (CompareUtility.equals(species.getId(), m_species.get(i).getId())) {
         return i;
@@ -210,12 +291,20 @@ public class IndexMapList {
     return -1;
   }
 
+  public IEgtSpeciesCode speciesOfIndex(int i) {
+    return m_species.get(i);
+  }
+
   public List<int[]> getAllStates() {
     return m_states.getAllStates(new ArrayList<int[]>());
   }
 
   public List<int[]> getAllColorStates() {
     return m_colorStates.getAllStates(new ArrayList<int[]>());
+  }
+
+  public List<IndexStatePair> getAllIndexStatePairs() {
+    return m_states.getAllIndexStatePairs(new ArrayList<IndexStatePair>());
   }
 
   public List<Integer> getAllStateIndicesForColorState(int... digits) {

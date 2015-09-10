@@ -48,11 +48,13 @@ public class EgtGraphCalculationThread extends Thread {
   }
 
   private class EgtGraphCalculationClientSyncJob extends ClientSyncJob {
+    protected Matrix rA;
     protected Matrix r;
     protected IEgtSpeciesCode c;
 
-    public EgtGraphCalculationClientSyncJob(String name, IClientSession session, Matrix rho, IEgtSpeciesCode code) {
+    public EgtGraphCalculationClientSyncJob(String name, IClientSession session, Matrix rhoAdded, Matrix rho, IEgtSpeciesCode code) {
       super(name, session);
+      rA = rhoAdded;
       r = rho;
       c = code;
     }
@@ -65,7 +67,7 @@ public class EgtGraphCalculationThread extends Thread {
 
     for (ICode<Long> c : CODES.getCodeType(EgtSpeciesCodeType.class).getCodes()) {
       if (!m_calculationForm.getConfigurationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c).isVisible()) {
-        new EgtGraphCalculationClientSyncJob("clearUnusedFitness", ClientSyncJob.getCurrentSession(), null, (IEgtSpeciesCode) c) {
+        new EgtGraphCalculationClientSyncJob("clearUnusedFitness", ClientSyncJob.getCurrentSession(), null, null, (IEgtSpeciesCode) c) {
           @Override
           protected void runVoid(IProgressMonitor monitor) throws Throwable {
             m_calculationForm.getConfigurationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c).getFitnessField().setValue(null);
@@ -133,15 +135,21 @@ public class EgtGraphCalculationThread extends Thread {
       rhoAdded.set(stateIndex, 0, rhoAdded.get(stateIndex, 0) / allStateIndicesForColorState.size());
     }
 
-    new EgtGraphCalculationClientSyncJob("transferProbabilities", ClientSyncJob.getCurrentSession(), rhoAdded, null) {
+    new EgtGraphCalculationClientSyncJob("transferProbabilities", ClientSyncJob.getCurrentSession(), rhoAdded, rho, null) {
       @Override
       protected void runVoid(IProgressMonitor monitor) throws Throwable {
         for (ITableRow row : m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getRows()) {
           int[] state = m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getStateColumn().getValue(row);
           int stateIndex = m_indexMapList.getColorStateIndexNumber(state);
-          m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getFixationProbabilityColumn().setValue(row, r.get(stateIndex, 0));
-          m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getExtinctionProbabilityColumn().setValue(row, 1 - r.get(stateIndex, 0));
+          List<Integer> allStateIndices = m_indexMapList.getAllStateIndicesForColorState(state);
+          int firstStateIndex = allStateIndices.get(0);
+          int lastStateIndex = allStateIndices.get(allStateIndices.size() - 1);
+          Matrix probabilities = r.getMatrix(firstStateIndex, lastStateIndex, 0, 0);
+          m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getProbabilitiesColumn().setValue(row, probabilities);
+          m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getFixationProbabilityColumn().setValue(row, rA.get(stateIndex, 0));
+          m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getExtinctionProbabilityColumn().setValue(row, 1 - rA.get(stateIndex, 0));
         }
+        m_calculationForm.setCalculated(true);
       }
     }.schedule();
 

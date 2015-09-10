@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.eclipse.scout.commons.CollectionUtility;
 import org.eclipse.scout.commons.CompareUtility;
 import org.eclipse.scout.commons.NumberUtility;
 import org.eclipse.scout.commons.StringUtility;
@@ -16,6 +17,8 @@ import org.eclipse.scout.commons.annotations.Order;
 import org.eclipse.scout.commons.exception.ProcessingException;
 import org.eclipse.scout.rt.client.ClientSyncJob;
 import org.eclipse.scout.rt.client.ui.action.keystroke.IKeyStroke;
+import org.eclipse.scout.rt.client.ui.action.menu.IMenuType;
+import org.eclipse.scout.rt.client.ui.action.menu.TableMenuType;
 import org.eclipse.scout.rt.client.ui.basic.table.ITableRow;
 import org.eclipse.scout.rt.client.ui.basic.table.columns.AbstractColumn;
 import org.eclipse.scout.rt.client.ui.basic.table.columns.AbstractDoubleColumn;
@@ -31,6 +34,7 @@ import org.eclipse.scout.rt.client.ui.form.fields.groupbox.AbstractGroupBox;
 import org.eclipse.scout.rt.client.ui.form.fields.listbox.AbstractListBox;
 import org.eclipse.scout.rt.client.ui.form.fields.smartfield.AbstractSmartField;
 import org.eclipse.scout.rt.client.ui.form.fields.tablefield.AbstractTableField;
+import org.eclipse.scout.rt.extension.client.ui.action.menu.AbstractExtensibleMenu;
 import org.eclipse.scout.rt.extension.client.ui.basic.table.AbstractExtensibleTable;
 import org.eclipse.scout.rt.shared.TEXTS;
 import org.eclipse.scout.rt.shared.services.common.code.CODES;
@@ -46,6 +50,8 @@ import org.eclipsescout.egt.shared.graph.EgtSpeciesCodeType.IEgtSpeciesCode;
 import org.eclipsescout.egt.shared.graph.IEgtGraphProcessService;
 import org.eclipsescout.egt.shared.graph.IndexMapList;
 
+import Jama.Matrix;
+
 /**
  * @author user
  */
@@ -54,6 +60,8 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
   private IndexMapList m_indexMapList;
 
   private List<IEgtSpeciesCode> m_speciesList;
+
+  private boolean m_calculated = false;
 
   public EgtGraphCalculationForm() throws ProcessingException {
     super();
@@ -85,6 +93,14 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
     m_speciesList = speciesList;
   }
 
+  public boolean getCalculated() {
+    return m_calculated;
+  }
+
+  public void setCalculated(boolean calculated) {
+    m_calculated = calculated;
+  }
+
   @Override
   protected void execInitForm() throws ProcessingException {
     super.execInitForm();
@@ -98,6 +114,8 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
     setIndexMapList(new IndexMapList());
 
     updateStates();
+
+    setCalculated(false);
 
     getOkButton().setVisible(false);
     getCancelButton().setVisible(false);
@@ -151,6 +169,7 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
       getConfigurationBox().getSpeciesBox().getCalculateForSpeciesField().setValue(null);
       getConfigurationBox().getSpeciesBox().getAdditionalSpeciesField().uncheckAllKeys();
 
+      setCalculated(false);
     }
 
   }
@@ -478,6 +497,10 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
           return getColumnSet().getColumnByClass(StateColumn.class);
         }
 
+        public ProbabilitiesColumn getProbabilitiesColumn() {
+          return getColumnSet().getColumnByClass(ProbabilitiesColumn.class);
+        }
+
         public ColorColumn getColorColumnByCode(IEgtSpeciesCode code) {
           for (IColumn column : getColumns()) {
             if (column instanceof ColorColumn && CompareUtility.equals(((ColorColumn) column).getCode().getId(), code.getId())) {
@@ -497,6 +520,16 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 
         @Order(5.0)
         public class StateColumn extends AbstractColumn<int[]> {
+
+          @Override
+          protected boolean getConfiguredDisplayable() {
+            return false;
+          }
+
+        }
+
+        @Order(6.0)
+        public class ProbabilitiesColumn extends AbstractColumn<Matrix> {
 
           @Override
           protected boolean getConfiguredDisplayable() {
@@ -583,6 +616,11 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
             return 100;
           }
 
+          @Override
+          protected int getConfiguredWidth() {
+            return 250;
+          }
+
         }
 
         @Order(30.0)
@@ -606,6 +644,41 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
           @Override
           protected int getConfiguredMultiplier() {
             return 100;
+          }
+
+          @Override
+          protected int getConfiguredWidth() {
+            return 250;
+          }
+
+        }
+
+        @Order(210.0)
+        public class DetailMenu extends AbstractExtensibleMenu {
+
+          @Override
+          protected String getConfiguredText() {
+            return TEXTS.get("Details_");
+          }
+
+          @Override
+          protected Set<? extends IMenuType> getConfiguredMenuTypes() {
+            return CollectionUtility.hashSet(TableMenuType.SingleSelection);
+          }
+
+          @Override
+          protected void execPrepareAction() throws ProcessingException {
+            setEnabled(getCalculated());
+          }
+
+          @Override
+          public void execAction() throws ProcessingException {
+            EgtGraphCalculationDetailProbabilitiesForm form = new EgtGraphCalculationDetailProbabilitiesForm(getGraphDetailFormField().getInnerForm().getGraph().getVertices().size(),
+                getProbabilitiesColumn().getSelectedValue(),
+                getIndexMapList().getAllStateIndicesForColorState(getStateColumn().getSelectedValue()),
+                getIndexMapList().getAllIndexStatePairs());
+            form.startDetails();
+            form.waitFor();
           }
 
         }
@@ -656,6 +729,7 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
       }
     }
 
+    setCalculated(false);
   }
 
   private void startCalculation() throws ProcessingException {
