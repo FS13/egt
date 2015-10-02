@@ -12,7 +12,7 @@ public class DerbySqlService extends AbstractDerbySqlService {
 
   @Override
   protected String getConfiguredJdbcMappingName() {
-    return "jdbc:derby:C:\\Users\\user\\Desktop\\Fritz\\Database\\DerbyDB";
+    return "jdbc:derby:C:\\Users\\Fritz Schinkel\\Documents\\TUM_MSC_Mathematik\\Masterarbeit\\Database\\DerbyDB";
   }
 
   @Override
