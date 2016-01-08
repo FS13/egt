@@ -67,4 +67,11 @@ public interface IEgtGraphProcessService extends IService {
    * @throws ProcessingException
    */
   int getMaxNumberOfVertices() throws ProcessingException;
+
+  /**
+   * @param graphNr
+   * @return
+   * @throws ProcessingException
+   */
+  int getNumberOfVerticesForGraph(Long graphNr) throws ProcessingException;
 }

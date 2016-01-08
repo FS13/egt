@@ -20,7 +20,7 @@ public class EgtGraphLookupService extends AbstractSqlLookupService<Long> implem
         "WHERE   1=1 " +
         "<key>   AND     G.GRAPH_NR = :key </key> " +
         "<text>  AND     UPPER(G.NAME) LIKE UPPER(:text||'%') </text> " +
-        "<all> </all> ";
+        "<all>   AND     NUMBER_OF_VERTICES = (CASE WHEN :numberOfVertices = 0 THEN NUMBER_OF_VERTICES ELSE :numberOfVertices END) </all> ";
 
   }
 }

@@ -103,4 +103,17 @@ public class EgtGraphProcessService extends AbstractService implements IEgtGraph
     return maxNumberOfVertices.getValue();
   }
 
+  @Override
+  public int getNumberOfVerticesForGraph(Long graphNr) throws ProcessingException {
+    IntegerHolder numberOfVertices = new IntegerHolder();
+    SQL.selectInto(""
+        + " SELECT NUMBER_OF_VERTICES "
+        + " FROM   GRAPH "
+        + " WHERE  GRAPH_NR = :graphNr "
+        + " INTO   :numberOfVertices "
+        , new NVPair("graphNr", graphNr)
+        , new NVPair("numberOfVertices", numberOfVertices));
+    return numberOfVertices.getValue();
+  }
+
 }

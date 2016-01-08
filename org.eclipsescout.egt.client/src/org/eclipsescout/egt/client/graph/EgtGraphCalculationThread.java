@@ -32,16 +32,21 @@ public class EgtGraphCalculationThread extends Thread {
 
   IClientSession m_clientSession;
   EgtGraphCalculationForm m_calculationForm;
+  EgtGraph m_graph;
   List<IEgtSpeciesCode> m_speciesList;
+
+  boolean m_isComparison;
 
   FitnessOfColorList m_fitnessOfColorList;
   IndexMapList m_indexMapList;
   Matrix m_pi;
 
-  public EgtGraphCalculationThread(IClientSession clienSession, EgtGraphCalculationForm calculationForm, List<IEgtSpeciesCode> speciesList) {
+  public EgtGraphCalculationThread(IClientSession clienSession, EgtGraphCalculationForm calculationForm, EgtGraph graph, List<IEgtSpeciesCode> speciesList, boolean isComparison) {
     m_clientSession = clienSession;
     m_calculationForm = calculationForm;
+    m_graph = graph;
     m_speciesList = speciesList;
+    m_isComparison = isComparison;
 
     m_fitnessOfColorList = new FitnessOfColorList();
     m_indexMapList = new IndexMapList();
@@ -80,8 +85,7 @@ public class EgtGraphCalculationThread extends Thread {
       }
     }
 
-    int numberOfSpecies = m_speciesList.size();
-    int numberOfIndividuals = m_calculationForm.getGraphDetailFormField().getInnerForm().getGraph().getVertices().size();
+    int numberOfIndividuals = m_graph.getVertices().size();
 
     m_indexMapList.buildIndexMapList(numberOfIndividuals, m_speciesList);
 
@@ -99,7 +103,7 @@ public class EgtGraphCalculationThread extends Thread {
       speciesArray[i] = m_speciesList.get(i);
     }
 
-    calculateGraph(m_calculationForm.getGraphDetailFormField().getInnerForm().getGraph(), speciesArray);
+    calculateGraph(m_graph, speciesArray);
 
     IEgtSpeciesCode[] firstSpeciesOneState = new IEgtSpeciesCode[numberOfIndividuals];
     firstSpeciesOneState[firstSpeciesOneState.length - 1] = m_speciesList.get(0);
@@ -145,11 +149,23 @@ public class EgtGraphCalculationThread extends Thread {
           int firstStateIndex = allStateIndices.get(0);
           int lastStateIndex = allStateIndices.get(allStateIndices.size() - 1);
           Matrix probabilities = r.getMatrix(firstStateIndex, lastStateIndex, 0, 0);
-          m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getProbabilitiesColumn().setValue(row, probabilities);
-          m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getFixationProbabilityColumn().setValue(row, rA.get(stateIndex, 0));
-          m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getExtinctionProbabilityColumn().setValue(row, 1 - rA.get(stateIndex, 0));
+          if (!m_isComparison) {
+            m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getProbabilitiesColumn().setValue(row, probabilities);
+            m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getFixationProbabilityColumn().setValue(row, rA.get(stateIndex, 0));
+            m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getExtinctionProbabilityColumn().setValue(row, 1 - rA.get(stateIndex, 0));
+          }
+          else {
+            m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getComparisonProbabilitiesColumn().setValue(row, probabilities);
+            m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getComparisonFixationProbabilityColumn().setValue(row, rA.get(stateIndex, 0));
+            m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getComparisonExtinctionProbabilityColumn().setValue(row, 1 - rA.get(stateIndex, 0));
+          }
         }
-        m_calculationForm.setCalculated(true);
+        if (!m_isComparison) {
+          m_calculationForm.setCalculated(true);
+        }
+        else {
+          m_calculationForm.setCompared(true);
+        }
       }
     }.schedule();
 
