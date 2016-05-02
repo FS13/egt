@@ -9,3 +9,9 @@ create table egt.graph
 );
 
 insert into egt.graph (name) values ('test');
+
+create table egt.parameter 
+(
+  identifier  varchar(250) primary key,
+  value varchar(250)
+);

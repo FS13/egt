@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: org.eclipsescout.egt.client.matlab
+Bundle-Version: 1.0.0.qualifier
+Bundle-ClassPath: lib/matlabcontrol-4.1.0-sources.jar,
+ lib/matlabcontrol-4.1.0.jar
+Export-Package: matlabcontrol,
+ matlabcontrol.extensions,
+ matlabcontrol.internal
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

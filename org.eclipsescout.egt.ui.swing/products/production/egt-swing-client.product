@@ -74,6 +74,7 @@
       <plugin id="org.eclipse.update.configurator"/>
       <plugin id="org.eclipsescout.egt.client"/>
       <plugin id="org.eclipsescout.egt.client.jama"/>
+      <plugin id="org.eclipsescout.egt.client.matlab"/>
       <plugin id="org.eclipsescout.egt.shared"/>
       <plugin id="org.eclipsescout.egt.ui.swing"/>
       <plugin id="org.w3c.css.sac"/>

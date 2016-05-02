@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.scout.commons.CompareUtility;
+import org.eclipse.scout.commons.TypeCastUtility;
 import org.eclipsescout.egt.shared.graph.EgtSpeciesCodeType.IEgtSpeciesCode;
 
 /**
@@ -21,6 +22,7 @@ public class IndexMapList {
   public class IndexMapListElement {
 
     private int m_value;
+    private int m_speciesBasedValue;
     private List<IndexMapListElement> m_list;
 
     public IndexMapListElement() {
@@ -34,6 +36,14 @@ public class IndexMapList {
 
     public void setValue(int value) {
       m_value = value;
+    }
+
+    public int getSpeciesBasedValue() {
+      return m_speciesBasedValue;
+    }
+
+    public void setSpeciesBasedValue(int speciesBasedValue) {
+      m_speciesBasedValue = speciesBasedValue;
     }
 
     public List<IndexMapListElement> getList() {
@@ -65,18 +75,20 @@ public class IndexMapList {
       int startingIndex = 0;
       for (int i = 0; i <= numberOfIndividuals; i++) {
         IndexMapListElement element = new IndexMapListElement();
-        startingIndex = element.buildStateIndexMapList(numberOfIndividuals, m_species, i, numberOfIndividuals - i, startingIndex);
+        startingIndex = element.buildStateIndexMapList(numberOfIndividuals, m_species, i, numberOfIndividuals - i, startingIndex, 0);
         m_list.add(element);
       }
     }
 
-    public int buildStateIndexMapList(int numberOfIndividuals, List<IEgtSpeciesCode> species, int numberOfFirstSpecies, int maxNumberOfOtherSpecies, int startingIndex) {
+    public int buildStateIndexMapList(int numberOfIndividuals, List<IEgtSpeciesCode> species, int numberOfFirstSpecies, int maxNumberOfOtherSpecies, int startingIndex, int speciesBasedIndex) {
       int numberOfSpecies = species.size();
+      int power = numberOfIndividuals - 1;
       if (CompareUtility.equals(numberOfIndividuals, 1)) {
         for (int i = 0; i < numberOfSpecies - 1; i++) {
           IndexMapListElement element = new IndexMapListElement();
           if (!CompareUtility.equals(maxNumberOfOtherSpecies, 0)) {
             element.setValue(startingIndex);
+            element.setSpeciesBasedValue(speciesBasedIndex + i);
             startingIndex++;
           }
           m_list.add(element);
@@ -84,6 +96,7 @@ public class IndexMapList {
         if (!CompareUtility.equals(numberOfFirstSpecies, 0)) {
           IndexMapListElement element = new IndexMapListElement();
           element.setValue(startingIndex);
+          element.setSpeciesBasedValue(speciesBasedIndex + (numberOfSpecies - 1));
           startingIndex++;
           m_list.add(element);
         }
@@ -93,14 +106,16 @@ public class IndexMapList {
         for (int i = 0; i < numberOfSpecies - 1; i++) {
           IndexMapListElement element = new IndexMapListElement();
           if (!CompareUtility.equals(maxNumberOfOtherSpecies, 0)) {
-            startingIndex = element.buildStateIndexMapList(numberOfIndividuals - 1, species, numberOfFirstSpecies, maxNumberOfOtherSpecies - 1, startingIndex);
+            int newSpeciesBasedIndex = speciesBasedIndex + (i * TypeCastUtility.castValue(Math.pow(numberOfSpecies, power), int.class));
+            startingIndex = element.buildStateIndexMapList(numberOfIndividuals - 1, species, numberOfFirstSpecies, maxNumberOfOtherSpecies - 1, startingIndex, newSpeciesBasedIndex);
           }
           m_list.add(element);
         }
         if (!CompareUtility.equals(numberOfFirstSpecies, 0)) {
           IndexMapListElement element = new IndexMapListElement();
           if (!CompareUtility.equals(numberOfFirstSpecies, 0)) {
-            startingIndex = element.buildStateIndexMapList(numberOfIndividuals - 1, species, numberOfFirstSpecies - 1, maxNumberOfOtherSpecies, startingIndex);
+            int newSpeciesBasedIndex = speciesBasedIndex + ((numberOfSpecies - 1) * TypeCastUtility.castValue(Math.pow(numberOfSpecies, power), int.class));
+            startingIndex = element.buildStateIndexMapList(numberOfIndividuals - 1, species, numberOfFirstSpecies - 1, maxNumberOfOtherSpecies, startingIndex, newSpeciesBasedIndex);
           }
           m_list.add(element);
         }
@@ -139,8 +154,8 @@ public class IndexMapList {
       return list;
     }
 
-    public List<Integer> getAllStateIndicesForColorStateWithNumberOfFirstSpecies(int... digits) {
-      return m_list.get(digits[digits.length - 1]).getAllStateIndicesForColorState(digits);
+    public List<Integer> getAllStateIndicesForColorStateWithNumberOfFirstSpecies(boolean speciesBased, int... digits) {
+      return m_list.get(digits[digits.length - 1]).getAllStateIndicesForColorState(speciesBased, digits);
     }
 
     public List<IndexStatePair> getAllIndexStatePairs(List<IndexStatePair> list, IEgtSpeciesCode... species) {
@@ -180,19 +195,24 @@ public class IndexMapList {
       return list;
     }
 
-    public List<Integer> getAllStateIndicesForColorState(int... digits) {
+    public List<Integer> getAllStateIndicesForColorState(boolean speciesBased, int... digits) {
       List<Integer> list = new ArrayList<Integer>();
       boolean isEnd = true;
       for (int i = 0; i < digits.length; i++) {
         if (1 <= digits[i]) {
           int[] newDigits = digits.clone();
           newDigits[i] = newDigits[i] - 1;
-          list.addAll(m_list.get(i).getAllStateIndicesForColorState(newDigits));
+          list.addAll(m_list.get(i).getAllStateIndicesForColorState(speciesBased, newDigits));
           isEnd = false;
         }
       }
       if (isEnd) {
-        list.add(m_value);
+        if (speciesBased) {
+          list.add(m_speciesBasedValue);
+        }
+        else {
+          list.add(m_value);
+        }
       }
       return list;
     }
@@ -307,13 +327,13 @@ public class IndexMapList {
     return m_states.getAllIndexStatePairs(new ArrayList<IndexStatePair>());
   }
 
-  public List<Integer> getAllStateIndicesForColorState(int... digits) {
+  public List<Integer> getAllStateIndicesForColorState(boolean speciesBased, int... digits) {
     int[] newDigits = new int[digits.length];
     for (int i = 0; i < digits.length - 1; i++) {
       newDigits[i] = digits[i + 1];
     }
     newDigits[digits.length - 1] = digits[0];
-    return m_states.getAllStateIndicesForColorStateWithNumberOfFirstSpecies(newDigits);
+    return m_states.getAllStateIndicesForColorStateWithNumberOfFirstSpecies(speciesBased, newDigits);
   }
 
 }

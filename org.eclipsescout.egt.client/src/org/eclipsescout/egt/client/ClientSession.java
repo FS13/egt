@@ -10,10 +10,12 @@ import org.eclipse.scout.rt.client.ClientJob;
 import org.eclipse.scout.rt.client.servicetunnel.http.ClientHttpServiceTunnel;
 import org.eclipse.scout.rt.shared.services.common.code.CODES;
 import org.eclipse.scout.rt.ui.rap.IRwtEnvironment;
+import org.eclipsescout.egt.client.matlab.MatlabControl;
 import org.eclipsescout.egt.client.ui.desktop.Desktop;
 
 public class ClientSession extends AbstractClientSession {
   private static IScoutLogger logger = ScoutLogManager.getLogger(ClientSession.class);
+  private static MatlabControl mc;
 
   private static IRwtEnvironment m_uiEnvironment;
 
@@ -35,6 +37,9 @@ public class ClientSession extends AbstractClientSession {
 
     setServiceTunnel(new ClientHttpServiceTunnel(this, UriUtility.toUrl(getBundle().getBundleContext().getProperty("server.url"))));
 
+    mc = new MatlabControl();
+    mc.requestProxy();
+
     //pre-load all known code types
     CODES.getAllCodeTypes(org.eclipsescout.egt.shared.Activator.PLUGIN_ID);
 
@@ -47,6 +52,8 @@ public class ClientSession extends AbstractClientSession {
   @Override
   public void execStoreSession() throws ProcessingException {
     UICallBack.deactivate("callback id");
+
+    mc.disconnectProxy();
   }
 
   public static IRwtEnvironment getEnvironment() {
@@ -55,5 +62,9 @@ public class ClientSession extends AbstractClientSession {
 
   public static void setEnvironment(IRwtEnvironment uiEnvironment) {
     m_uiEnvironment = uiEnvironment;
+  }
+
+  public static final MatlabControl getMatlabControl() {
+    return mc;
   }
 }

@@ -326,12 +326,11 @@ public class EgtGraphCalculationDetailProbabilitiesForm extends AbstractForm {
     @Override
     protected void execLoad() throws ProcessingException {
       Table table = getMainBox().getGroupBox().getProbabilityTableField().getTable();
-      int firstStateIndex = getStateIndices().get(0);
-      for (int j : getStateIndices()) {
+      for (int i = 0; i < getStateIndices().size(); i++) {
         ITableRow r = table.createRow();
-        table.getStateColumn().setValue(r, getISPairList().get(j).getState());
-        table.getFixationProbabilityColumn().setValue(r, Math.abs(getProbabilities().get(j - firstStateIndex, 0)));
-        table.getExtinctionProbabilityColumn().setValue(r, Math.abs(1 - getProbabilities().get(j - firstStateIndex, 0)));
+        table.getStateColumn().setValue(r, getISPairList().get(getStateIndices().get(i)).getState());
+        table.getFixationProbabilityColumn().setValue(r, Math.abs(getProbabilities().get(i, 0)));
+        table.getExtinctionProbabilityColumn().setValue(r, Math.abs(1 - getProbabilities().get(i, 0)));
         table.addRow(r);
       }
       setColumnsVisible();
