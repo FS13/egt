@@ -161,6 +161,7 @@ public class EgtGraphCalculationThread extends Thread {
         else {
           m_calculationForm.setCompared(true);
         }
+        m_calculationForm.updateGuiWithoutStates();
       }
     }.schedule();
 
