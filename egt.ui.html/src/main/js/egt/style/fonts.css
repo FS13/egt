@@ -1,0 +1,9 @@
+@font-face {
+  font-family: awesomeIcons;
+  font-weight: normal;
+  src: url('fontAwesome.woff') format('woff');
+}
+
+.font-awesomeIcons {
+  font-family: awesomeIcons, @font-default-family;
+}

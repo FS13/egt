@@ -9,3 +9,4 @@
  *     BSI Business Systems Integration AG - initial API and implementation
  ******************************************************************************/
 __include("scout-module.js");
+__include("svg-module.js");

@@ -1,11 +1,10 @@
 package org.eclipse.scout.apps.egt.client;
 
+import org.eclipse.scout.apps.egt.shared.graph.EgtGraphStorage;
 import org.eclipse.scout.rt.client.AbstractClientSession;
 import org.eclipse.scout.rt.client.IClientSession;
 import org.eclipse.scout.rt.client.session.ClientSessionProvider;
 import org.eclipse.scout.rt.shared.services.common.code.CODES;
-
-import org.eclipse.scout.apps.egt.client.Desktop;
 
 /**
  * <h3>{@link ClientSession}</h3>
@@ -28,6 +27,8 @@ public class ClientSession extends AbstractClientSession {
 
 	@Override
 	protected void execLoadSession() {
+		EgtGraphStorage.reloadGraphStorage();
+
 		// pre-load all known code types
 		CODES.getAllCodeTypes("org.eclipse.scout.apps.egt.shared");
 

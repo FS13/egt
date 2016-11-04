@@ -27,5 +27,9 @@
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.eclipse.scout.rt</groupId>
+      <artifactId>org.eclipse.scout.rt.svg.ui.html</artifactId>
+    </dependency>
   </dependencies>
 </project>
