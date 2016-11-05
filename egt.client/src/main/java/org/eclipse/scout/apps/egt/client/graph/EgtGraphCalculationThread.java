@@ -3,7 +3,6 @@ package org.eclipse.scout.apps.egt.client.graph;
 import java.util.List;
 
 import org.eclipse.scout.apps.egt.shared.graph.EgtGraph;
-import org.eclipse.scout.apps.egt.shared.graph.EgtGraphVertex;
 import org.eclipse.scout.apps.egt.shared.graph.EgtGraphWeightedDirectedEdge;
 import org.eclipse.scout.apps.egt.shared.graph.EgtSpeciesCodeType;
 import org.eclipse.scout.apps.egt.shared.graph.EgtSpeciesCodeType.IEgtSpeciesCode;
@@ -77,15 +76,14 @@ public class EgtGraphCalculationThread extends Thread {
 		int numberOfSpecies = m_speciesList.size();
 		int numberOfIndividuals = m_calculationForm.getGraphDetailFormField().getInnerForm().getGraph().getVertices().size();
 
-		m_indexMapList.buildIndexMapList(numberOfSpecies, numberOfIndividuals);
+		m_indexMapList.buildIndexMapList(numberOfIndividuals, m_speciesList);
 
-		int[] firstSpeciesFixationState = new int[numberOfSpecies];
-		firstSpeciesFixationState[0] = numberOfIndividuals;
-		for (int i = 1; i < firstSpeciesFixationState.length; i++) {
-			firstSpeciesFixationState[i] = 0;
+		IEgtSpeciesCode[] firstSpeciesFixationState = new IEgtSpeciesCode[numberOfIndividuals];
+		for (int i = 0; i < firstSpeciesFixationState.length; i++) {
+			firstSpeciesFixationState[i] = m_speciesList.get(0);
 		}
 
-		int matrixSize = m_indexMapList.getIndexNumber(firstSpeciesFixationState) + 1;
+		int matrixSize = m_indexMapList.getStateIndexNumber(firstSpeciesFixationState) + 1;
 
 		m_pi = new Matrix(matrixSize, matrixSize);
 
@@ -96,21 +94,13 @@ public class EgtGraphCalculationThread extends Thread {
 
 		calculateGraph(m_calculationForm.getGraphDetailFormField().getInnerForm().getGraph(), speciesArray);
 
-		int[] firstSpeciesOneState = new int[numberOfSpecies];
-		firstSpeciesOneState[0] = 1;
-		firstSpeciesOneState[firstSpeciesOneState.length - 1] = numberOfIndividuals - 1;
-		for (int i = 1; i < firstSpeciesOneState.length - 1; i++) {
-			firstSpeciesFixationState[i] = 0;
+		IEgtSpeciesCode[] firstSpeciesOneState = new IEgtSpeciesCode[numberOfIndividuals];
+		firstSpeciesOneState[firstSpeciesOneState.length - 1] = m_speciesList.get(0);
+		for (int i = 0; i < firstSpeciesOneState.length - 1; i++) {
+			firstSpeciesOneState[i] = m_speciesList.get(1);
 		}
 
-		int subMatrixStartIndex = m_indexMapList.getIndexNumber(firstSpeciesOneState);
-
-		List<int[]> states = m_indexMapList.getAllStates();
-		for (int i = subMatrixStartIndex; i < m_pi.getRowDimension() - 1; i++) {
-			int[] state = states.get(i);
-			long binomial = calculateBinomialForState(numberOfSpecies, numberOfIndividuals, state);
-			m_pi.setMatrix(i, i, 0, matrixSize - 1, m_pi.getMatrix(i, i, 0, matrixSize - 1).times((double) 1 / binomial));
-		}
+		int subMatrixStartIndex = m_indexMapList.getStateIndexNumber(firstSpeciesOneState);
 
 		Matrix subPi = m_pi.getMatrix(subMatrixStartIndex, matrixSize - 2, subMatrixStartIndex, matrixSize - 2);
 
@@ -127,12 +117,23 @@ public class EgtGraphCalculationThread extends Thread {
 		rho.setMatrix(subMatrixStartIndex, matrixSize - 2, 0, 0, subRho);
 		rho.set(matrixSize - 1, 0, 1);
 
-		ModelJobs.schedule(new EgtGraphCalculationRunnable(rho, null) {
+		List<int[]> allColorStates = m_indexMapList.getAllColorStates();
+		Matrix rhoAdded = new Matrix(allColorStates.size(), 1);
+		for (int[] state : allColorStates) {
+			int stateIndex = m_indexMapList.getColorStateIndexNumber(state);
+			List<Integer> allStateIndicesForColorState = m_indexMapList.getAllStateIndicesForColorState(state);
+			for (int index : allStateIndicesForColorState) {
+				rhoAdded.set(stateIndex, 0, rhoAdded.get(stateIndex, 0) + rho.get(index, 0));
+			}
+			rhoAdded.set(stateIndex, 0, rhoAdded.get(stateIndex, 0) / allStateIndicesForColorState.size());
+		}
+
+		ModelJobs.schedule(new EgtGraphCalculationRunnable(rhoAdded, null) {
 			@Override
 			public void run() throws Exception {
 				for (ITableRow row : m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getRows()) {
 					int[] state = m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getStateColumn().getValue(row);
-					int stateIndex = m_indexMapList.getIndexNumber(state);
+					int stateIndex = m_indexMapList.getColorStateIndexNumber(state);
 					m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getFixationProbabilityColumn().setValue(row, r.get(stateIndex, 0));
 					m_calculationForm.getAnalysisBox().getProbabilityTableField().getTable().getExtinctionProbabilityColumn().setValue(row, 1 - r.get(stateIndex, 0));
 				}
@@ -161,29 +162,21 @@ public class EgtGraphCalculationThread extends Thread {
 	protected void calculateState(EgtGraph graph, IEgtSpeciesCode... codes) {
 		NumberOfColorList nocl = new NumberOfColorList();
 		Double fitnessSum = 0.0;
-		for (EgtGraphVertex vertex : graph.getVertices()) {
-			IEgtSpeciesCode code = BEANS.get(EgtSpeciesCodeType.class).getCodeByEnum(vertex.getSpecies());
+		IEgtSpeciesCode[] stateFrom = new IEgtSpeciesCode[graph.getVertices().size()];
+		for (int i = 0; i < graph.getVertices().size(); i++) {
+			IEgtSpeciesCode code = BEANS.get(EgtSpeciesCodeType.class).getCodeByEnum(graph.getVertices().get(i).getSpecies());
 			nocl.addOneToColor(code);
 			fitnessSum = fitnessSum + m_fitnessOfColorList.getFitnessOfColor(code).getFitness();
+			stateFrom[i] = code;
 		}
+		int fromIndex = m_indexMapList.getStateIndexNumber(stateFrom);
 		for (EgtGraphWeightedDirectedEdge edge : graph.getEdges()) {
+			IEgtSpeciesCode[] stateTo = stateFrom.clone();
 			Double probabilityFrom = m_fitnessOfColorList.getFitnessOfColor(BEANS.get(EgtSpeciesCodeType.class).getCodeByEnum(edge.getFrom().getSpecies())).getFitness() / fitnessSum;
 			Double probabilityEdge = edge.getWeight();
 			Double probability = probabilityFrom * probabilityEdge;
-			IEgtSpeciesCode codeFrom = (IEgtSpeciesCode) BEANS.get(EgtSpeciesCodeType.class).getCodeByEnum(edge.getFrom().getSpecies());
-			IEgtSpeciesCode codeTo = (IEgtSpeciesCode) BEANS.get(EgtSpeciesCodeType.class).getCodeByEnum(edge.getTo().getSpecies());
-			int fromIndex = 0;
-			int toIndex = 0;
-			int[] stateFrom = new int[codes.length];
-			int[] stateTo = new int[codes.length];
-			for (int i = 0; i < codes.length; i++) {
-				int from = codes[i].getId() == codeFrom.getId() ? 1 : 0;
-				int to = codes[i].getId() == codeTo.getId() ? -1 : 0;
-				stateFrom[i] = nocl.getNumberOfColor(codes[i]) == null ? 0 : nocl.getNumberOfColor(codes[i]).getCount();
-				stateTo[i] = nocl.getNumberOfColor(codes[i]) == null ? 0 : nocl.getNumberOfColor(codes[i]).getCount() + from + to;
-			}
-			fromIndex = m_indexMapList.getIndexNumber(stateFrom);
-			toIndex = m_indexMapList.getIndexNumber(stateTo);
+			stateTo[graph.getVertices().indexOf(edge.getTo())] = (IEgtSpeciesCode) BEANS.get(EgtSpeciesCodeType.class).getCodeByEnum(edge.getFrom().getSpecies());
+			int toIndex = m_indexMapList.getStateIndexNumber(stateTo);
 			m_pi.set(fromIndex, toIndex, m_pi.get(fromIndex, toIndex) + probability);
 		}
 	}
