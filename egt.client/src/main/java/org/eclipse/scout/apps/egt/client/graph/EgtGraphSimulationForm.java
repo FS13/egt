@@ -28,6 +28,7 @@ import org.eclipse.scout.rt.client.ui.form.fields.groupbox.AbstractGroupBox;
 import org.eclipse.scout.rt.client.ui.form.fields.integerfield.AbstractIntegerField;
 import org.eclipse.scout.rt.client.ui.form.fields.labelfield.AbstractLabelField;
 import org.eclipse.scout.rt.client.ui.form.fields.smartfield.AbstractSmartField;
+import org.eclipse.scout.rt.client.ui.messagebox.MessageBoxes;
 import org.eclipse.scout.rt.platform.BEANS;
 import org.eclipse.scout.rt.platform.Order;
 import org.eclipse.scout.rt.platform.exception.ProcessingException;
@@ -178,10 +179,8 @@ public class EgtGraphSimulationForm extends EgtGraphForm implements IEgtPageForm
 			try {
 				getGraphDetailFormField().getInnerForm().setGraph(GraphUtility.buildGraphFromSvgText(getSvgText()));
 				getGraphDetailFormField().getInnerForm().populateGraph();
-				for (ITableRow row : getGraphDetailFormField().getInnerForm().getVerticesTabBox().getVerticesTableField()
-						.getTable().getRows()) {
-					getGraphDetailFormField().getInnerForm().getVerticesTabBox().getVerticesTableField().getSpeciesColumn()
-							.setValue(row, EgtSpeciesCodeType.RedCode.ID);
+				for (ITableRow row : getGraphDetailFormField().getInnerForm().getVerticesTabBox().getVerticesTableField().getTable().getRows()) {
+					getGraphDetailFormField().getInnerForm().getVerticesTabBox().getVerticesTableField().getSpeciesColumn().setValue(row, EgtSpeciesCodeType.GreyCode.ID);
 				}
 
 				getSimulationBox().setEnabled(true);
@@ -391,13 +390,21 @@ public class EgtGraphSimulationForm extends EgtGraphForm implements IEgtPageForm
 			@Override
 			protected void execClickAction() throws ProcessingException {
 				super.execClickAction();
-				boolean startNew = !isPaused() && isStopped();
-				setEnabled(false);
-				setPaused(false);
-				getPauseSimulationButton().setEnabled(true);
-				setStopped(false);
-				getStopSimulationButton().setEnabled(true);
-				startSimulation(startNew);
+				List<IEgtSpeciesCode> species = new ArrayList<EgtSpeciesCodeType.IEgtSpeciesCode>();
+				for (ITableRow row : getGraphDetailFormField().getInnerForm().getVerticesTabBox().getVerticesTableField().getTable().getRows()) {
+					species.add(BEANS.get(EgtSpeciesCodeType.class).getCodeByEnum(getGraphDetailFormField().getInnerForm().getVerticesTabBox().getVerticesTableField().getEgtGraphVertecColumn().getValue(row).getSpecies()));
+				}
+				if (species.contains(BEANS.get(EgtSpeciesCodeType.class).getCode(EgtSpeciesCodeType.GreyCode.ID))) {
+					MessageBoxes.createOk().withHeader(TEXTS.get("EGTFS")).withBody(TEXTS.get("GreyIsNotAllowedAsInitialSpecies"));
+				} else {
+					boolean startNew = !isPaused() && isStopped();
+					setEnabled(false);
+					setPaused(false);
+					getPauseSimulationButton().setEnabled(true);
+					setStopped(false);
+					getStopSimulationButton().setEnabled(true);
+					startSimulation(startNew);
+				}
 			}
 
 		}

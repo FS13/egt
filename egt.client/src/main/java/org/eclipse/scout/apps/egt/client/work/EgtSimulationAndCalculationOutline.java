@@ -2,6 +2,7 @@ package org.eclipse.scout.apps.egt.client.work;
 
 import java.util.List;
 
+import org.eclipse.scout.apps.egt.client.graph.EgtGraphCalculationForm;
 import org.eclipse.scout.apps.egt.client.graph.EgtGraphSimulationForm;
 import org.eclipse.scout.apps.egt.client.ui.desktop.pages.FormPage;
 import org.eclipse.scout.apps.egt.shared.FontAwesomeIcons;
@@ -23,6 +24,8 @@ public class EgtSimulationAndCalculationOutline extends AbstractOutline {
 		super.execCreateChildPages(pageList);
 		FormPage egtGraphSimulationPage = new FormPage(EgtGraphSimulationForm.class);
 		pageList.add(egtGraphSimulationPage);
+		FormPage egtGraphCalculationPage = new FormPage(EgtGraphCalculationForm.class);
+		pageList.add(egtGraphCalculationPage);
 	}
 
 	@Override

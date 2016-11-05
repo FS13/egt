@@ -158,7 +158,7 @@ public class EgtGraphDetailForm extends AbstractForm implements IEgtPageForm {
 				}
 
 				@Override
-				protected Class<? extends IValueField> getConfiguredMasterField() {
+				protected Class<? extends IValueField<?>> getConfiguredMasterField() {
 					return MainBox.GroupBox.GraphSvgSourceField.class;
 				}
 

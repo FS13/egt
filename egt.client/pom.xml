@@ -31,6 +31,11 @@
     <dependency>
       <groupId>org.eclipse.scout.rt</groupId>
       <artifactId>org.eclipse.scout.rt.svg.client</artifactId>
-	</dependency>
+		</dependency>
+		<dependency>
+    	<groupId>gov.nist.math</groupId>
+    	<artifactId>jama</artifactId>
+    	<version>1.0.3</version>
+		</dependency>
   </dependencies>
 </project>

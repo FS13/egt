@@ -4,7 +4,7 @@ import org.eclipse.scout.rt.platform.util.StringUtility;
 
 public enum EgtSpecies {
 
-	BLACK("#000000"), WHITE("#FFFFFF"), RED("#FF0000"), BLUE("#0000FF"), GREEN("#00FF00"), YELLOW("#FFFF00");
+	BLACK("#000000"), WHITE("#FFFFFF"), RED("#FF0000"), BLUE("#0000FF"), GREEN("#00FF00"), YELLOW("#FFFF00"), GREY("#9D9D9D");
 
 	private final String color;
 	private final String complementaryColor;
