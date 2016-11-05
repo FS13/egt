@@ -33,11 +33,13 @@ public class EgtGraphSimulationThread extends Thread {
 		protected EgtGraphWeightedDirectedEdge e;
 		protected int t;
 		protected IEgtSpeciesCode c;
+		protected LifetimeAnalysisOfColorList laocl;
 
-		public EgtGraphSimulationRunnable(EgtGraphWeightedDirectedEdge edge, IEgtSpeciesCode code, int timeSteps) {
+		public EgtGraphSimulationRunnable(EgtGraphWeightedDirectedEdge edge, IEgtSpeciesCode code, int timeSteps, LifetimeAnalysisOfColorList laocl) {
 			e = edge;
 			t = timeSteps;
 			c = code;
+			this.laocl = laocl;
 		}
 
 		@Override
@@ -112,6 +114,10 @@ public class EgtGraphSimulationThread extends Thread {
 			return null;
 		}
 
+		public List<NumberOfColor> getNumberOfColorList() {
+			return m_numberOfColors;
+		}
+
 		public boolean isStationaryState() {
 			return CompareUtility.isOneOf(m_numberOfColors.size(), 0, 1);
 		}
@@ -175,16 +181,129 @@ public class EgtGraphSimulationThread extends Thread {
 
 	}
 
+	private class LifetimeAnalysisOfColorList {
+
+		private class LifetimeAnalysisOfColor {
+			private IEgtSpeciesCode m_code;
+			private int m_aliveUntil;
+			private int m_max;
+			private int m_min;
+
+			public LifetimeAnalysisOfColor(IEgtSpeciesCode code) {
+				m_code = code;
+				m_aliveUntil = 0;
+				m_max = 0;
+				m_min = 0;
+			}
+
+			public IEgtSpeciesCode getColor() {
+				return m_code;
+			}
+
+			public int getAliveUntil() {
+				return m_aliveUntil;
+			}
+
+			public void setAliveUntil(int aliveUntil) {
+				m_aliveUntil = aliveUntil;
+			}
+
+			public int getMax() {
+				return m_max;
+			}
+
+			public void setMax(int max) {
+				m_max = max;
+			}
+
+			public int getMin() {
+				return m_min;
+			}
+
+			public void setMin(int min) {
+				m_min = min;
+			}
+		}
+
+		List<LifetimeAnalysisOfColor> m_lifetimeAnalysisOfColors = new ArrayList<LifetimeAnalysisOfColor>();
+
+		public LifetimeAnalysisOfColorList() {
+		}
+
+		public void updateLifeTimeAnalysisForColor(IEgtSpeciesCode code, int timeStep, int numberOfIndividuals) {
+			updateLifeTimeAnalysisTimeStepForColor(code, timeStep);
+			updateLifeTimeAnalysisNumberOfIndividualsForColor(code, numberOfIndividuals);
+		}
+
+		public void updateLifeTimeAnalysisTimeStepForColor(IEgtSpeciesCode code, int timeStep) {
+			LifetimeAnalysisOfColor laoc = getLifetimeAnalysisOfColor(code);
+			if (CompareUtility.equals(laoc, null)) {
+				laoc = new LifetimeAnalysisOfColor(code);
+				m_lifetimeAnalysisOfColors.add(laoc);
+			}
+			if (!CompareUtility.equals(laoc.getMin(), 0)) {
+				laoc.setAliveUntil(timeStep);
+			}
+		}
+
+		public void updateLifeTimeAnalysisNumberOfIndividualsForColor(IEgtSpeciesCode code, int numberOfIndividuals) {
+			LifetimeAnalysisOfColor laoc = getLifetimeAnalysisOfColor(code);
+			if (CompareUtility.equals(laoc, null)) {
+				laoc = new LifetimeAnalysisOfColor(code);
+				m_lifetimeAnalysisOfColors.add(laoc);
+			}
+			laoc.setMax(Math.max(laoc.getMax(), numberOfIndividuals));
+			laoc.setMin(Math.min(laoc.getMin(), numberOfIndividuals));
+		}
+
+		public void setInitialLifeTimeAnalysisForColor(IEgtSpeciesCode code, int timeStep, int numberOfIndividuals) {
+			setInitialLifeTimeAnalysisForColor(code, timeStep, numberOfIndividuals, numberOfIndividuals);
+		}
+
+		public void setInitialLifeTimeAnalysisForColor(IEgtSpeciesCode code, int timeStep, int maxNumberOfIndividuals, int minNumberOfIndividuals) {
+			LifetimeAnalysisOfColor laoc = getLifetimeAnalysisOfColor(code);
+			if (CompareUtility.equals(laoc, null)) {
+				laoc = new LifetimeAnalysisOfColor(code);
+				m_lifetimeAnalysisOfColors.add(laoc);
+			}
+			laoc.setAliveUntil(timeStep);
+			laoc.setMax(maxNumberOfIndividuals);
+			laoc.setMin(minNumberOfIndividuals);
+		}
+
+		public boolean removeNumberOfColor(IEgtSpeciesCode code) {
+			LifetimeAnalysisOfColor laoc = getLifetimeAnalysisOfColor(code);
+			if (!CompareUtility.equals(laoc, null)) {
+				return m_lifetimeAnalysisOfColors.remove(laoc);
+			}
+			return false;
+		}
+
+		public LifetimeAnalysisOfColor getLifetimeAnalysisOfColor(IEgtSpeciesCode code) {
+			for (LifetimeAnalysisOfColor laoc : m_lifetimeAnalysisOfColors) {
+				if (CompareUtility.equals(laoc.getColor(), code)) {
+					return laoc;
+				}
+			}
+			return null;
+		}
+
+		public List<LifetimeAnalysisOfColor> getLifetimeAnalysisOfColorList() {
+			return m_lifetimeAnalysisOfColors;
+		}
+
+	}
+
 	@Override
 	public void run() {
-		// ClientSessionThreadLocal.set(m_clientSession);
 
 		double fitnessSum = 0.0;
 		NumberOfColorList nocl = new NumberOfColorList();
 		FitnessOfColorList focl = new FitnessOfColorList();
+		LifetimeAnalysisOfColorList laocl = new LifetimeAnalysisOfColorList();
 		int timeSteps = m_startNew ? 0 : m_simulationForm.getAnalysisBox().getTimeStepsField().getValue();
 
-		ModelJobs.schedule(new EgtGraphSimulationRunnable(null, null, timeSteps) {
+		ModelJobs.schedule(new EgtGraphSimulationRunnable(null, null, timeSteps, null) {
 			@Override
 			public void run() throws Exception {
 				m_simulationForm.getAnalysisBox().getTimeStepsField().setValue(t);
@@ -196,7 +315,7 @@ public class EgtGraphSimulationThread extends Thread {
 			if (!m_simulationForm.getSimulationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c)
 					.isVisible()) {
 
-				ModelJobs.schedule(new EgtGraphSimulationRunnable(null, (IEgtSpeciesCode) c, 0) {
+				ModelJobs.schedule(new EgtGraphSimulationRunnable(null, (IEgtSpeciesCode) c, 0, null) {
 					@Override
 					public void run() throws Exception {
 						m_simulationForm.getSimulationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c)
@@ -225,6 +344,11 @@ public class EgtGraphSimulationThread extends Thread {
 			fitnessSum = fitnessSum + f;
 
 			nocl.addOneToColor(c);
+			if (m_startNew) {
+				laocl.setInitialLifeTimeAnalysisForColor(c, timeSteps, nocl.getNumberOfColor(c).getCount());
+			} else {
+				laocl.setInitialLifeTimeAnalysisForColor(c, timeSteps, m_simulationForm.getAnalysisBox().getLifetimeAnalysisBox().getLifetimeAnalysisColorBoxByCode(c).getMaxNumberOfIndividualsField().getValue(), m_simulationForm.getAnalysisBox().getLifetimeAnalysisBox().getLifetimeAnalysisColorBoxByCode(c).getMinNumberOfIndividualsField().getValue());
+			}
 
 		}
 		while (!nocl.isStationaryState() && !m_simulationForm.isPaused() && !m_simulationForm.isStopped()) {
@@ -268,8 +392,16 @@ public class EgtGraphSimulationThread extends Thread {
 			nocl.addOneToColor(updateVertexSpeciesAfter);
 
 			timeSteps++;
+			if (CompareUtility.equals(nocl.getNumberOfColor(updateVertexSpeciesBefore), null)) {
+				laocl.updateLifeTimeAnalysisTimeStepForColor(updateVertexSpeciesBefore, timeSteps);
+				laocl.updateLifeTimeAnalysisNumberOfIndividualsForColor(updateVertexSpeciesBefore, 0);
+			}
+			for (org.eclipse.scout.apps.egt.client.graph.EgtGraphSimulationThread.NumberOfColorList.NumberOfColor noc : nocl.getNumberOfColorList()) {
+				laocl.updateLifeTimeAnalysisTimeStepForColor(noc.getColor(), timeSteps);
+				laocl.updateLifeTimeAnalysisNumberOfIndividualsForColor(noc.getColor(), noc.getCount());
+			}
 
-			ModelJobs.schedule(new EgtGraphSimulationRunnable(selectedEdge, null, timeSteps) {
+			ModelJobs.schedule(new EgtGraphSimulationRunnable(selectedEdge, null, timeSteps, laocl) {
 				@Override
 				public void run() throws Exception {
 					m_simulationForm.getGraphDetailFormField().getInnerForm().getGraph().setChanging(true);
@@ -281,6 +413,12 @@ public class EgtGraphSimulationThread extends Thread {
 					}
 					m_simulationForm.getGraphDetailFormField().getInnerForm().getGraph().setChanging(false);
 					m_simulationForm.getAnalysisBox().getTimeStepsField().setValue(t);
+
+					for (LifetimeAnalysisOfColorList.LifetimeAnalysisOfColor laoc : laocl.getLifetimeAnalysisOfColorList()) {
+						m_simulationForm.getAnalysisBox().getLifetimeAnalysisBox().getLifetimeAnalysisColorBoxByCode(laoc.getColor()).getAliveUntilField().setValue(laoc.getAliveUntil());
+						m_simulationForm.getAnalysisBox().getLifetimeAnalysisBox().getLifetimeAnalysisColorBoxByCode(laoc.getColor()).getMaxNumberOfIndividualsField().setValue(laoc.getMax());
+						m_simulationForm.getAnalysisBox().getLifetimeAnalysisBox().getLifetimeAnalysisColorBoxByCode(laoc.getColor()).getMinNumberOfIndividualsField().setValue(laoc.getMin());
+					}
 				}
 			}, ModelJobs.newInput(ClientRunContexts.copyCurrent().withSession(m_clientSession, true))
 					.withName("updateGraphAfterStep"));
@@ -295,7 +433,7 @@ public class EgtGraphSimulationThread extends Thread {
 
 		if (!m_simulationForm.isPaused() && !m_simulationForm.isStopped()) {
 
-			ModelJobs.schedule(new EgtGraphSimulationRunnable(null, null, timeSteps) {
+			ModelJobs.schedule(new EgtGraphSimulationRunnable(null, null, timeSteps, null) {
 				@Override
 				public void run() throws Exception {
 					m_simulationForm.getSimulationBox().getStartSimulationButton().setEnabled(true);
@@ -303,6 +441,11 @@ public class EgtGraphSimulationThread extends Thread {
 					m_simulationForm.getSimulationBox().getPauseSimulationButton().setEnabled(false);
 					m_simulationForm.setStopped(true);
 					m_simulationForm.getSimulationBox().getStopSimulationButton().setEnabled(false);
+					try {
+						m_simulationForm.getGraphDetailFormField().getInnerForm().populateSimulationUpdateEdge(null);
+					} catch (ProcessingException e) {
+						e.printStackTrace();
+					}
 				}
 			}, ModelJobs.newInput(ClientRunContexts.copyCurrent().withSession(m_clientSession, true))
 					.withName("updateButtonsAfterSimulation"));

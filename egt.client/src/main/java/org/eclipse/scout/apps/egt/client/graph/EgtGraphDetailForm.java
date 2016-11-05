@@ -1119,21 +1119,24 @@ public class EgtGraphDetailForm extends AbstractForm implements IEgtPageForm {
 	}
 
 	public void populateSimulationUpdateEdge(EgtGraphWeightedDirectedEdge edge) throws ProcessingException {
-		edge.setHighlight(true);
-		edge.updateSvgText();
-		EgtGraphVertex vertex = edge.getTo();
-		for (ITableRow row : getVerticesTabBox().getVerticesTableField().getTable().getRows()) {
-			if (CompareUtility.equals(getVerticesTabBox().getVerticesTableField().getEgtGraphVertecColumn().getValue(row).getId(), vertex.getId())) {
-				getVerticesTabBox().getVerticesTableField().getEgtGraphVertecColumn().setValue(row, vertex);
-				getVerticesTabBox().getVerticesTableField().getTable().decorate(row);
+		if (!CompareUtility.equals(edge, null)) {
+			edge.setHighlight(true);
+			edge.updateSvgText();
+			EgtGraphVertex vertex = edge.getTo();
+			for (ITableRow row : getVerticesTabBox().getVerticesTableField().getTable().getRows()) {
+				if (CompareUtility.equals(getVerticesTabBox().getVerticesTableField().getEgtGraphVertecColumn().getValue(row).getId(), vertex.getId())) {
+					getVerticesTabBox().getVerticesTableField().getEgtGraphVertecColumn().setValue(row, vertex);
+					getVerticesTabBox().getVerticesTableField().getTable().decorate(row);
+				}
 			}
 		}
 		if (!CompareUtility.equals(getGraph(), null)) {
 			getGraphSvgSourceField().setValue(getGraph().getSvgString());
 		}
-		edge.setHighlight(false);
-		edge.updateSvgText();
-		requestFocus(getVerticesTabBox());
+		if (!CompareUtility.equals(edge, null)) {
+			edge.setHighlight(false);
+			edge.updateSvgText();
+		}
 	}
 
 	private SVGDocument getDocument(String content) throws IOException, ProcessingException {
