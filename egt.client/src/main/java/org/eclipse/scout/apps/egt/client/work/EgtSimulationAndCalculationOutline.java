@@ -2,7 +2,8 @@ package org.eclipse.scout.apps.egt.client.work;
 
 import java.util.List;
 
-import org.eclipse.scout.apps.egt.client.graph.EgtGraphTablePage;
+import org.eclipse.scout.apps.egt.client.graph.EgtGraphSimulationForm;
+import org.eclipse.scout.apps.egt.client.ui.desktop.pages.FormPage;
 import org.eclipse.scout.apps.egt.shared.FontAwesomeIcons;
 import org.eclipse.scout.rt.client.ui.desktop.outline.AbstractOutline;
 import org.eclipse.scout.rt.client.ui.desktop.outline.pages.IPage;
@@ -10,18 +11,18 @@ import org.eclipse.scout.rt.platform.Order;
 import org.eclipse.scout.rt.shared.TEXTS;
 
 /**
- * <h3>{@link WorkOutline}</h3>
+ * <h3>{@link EgtSimulationAndCalculationOutline}</h3>
  *
  * @author Fritz Schinkel
  */
-@Order(1000)
-public class WorkOutline extends AbstractOutline {
+@Order(2000)
+public class EgtSimulationAndCalculationOutline extends AbstractOutline {
 
 	@Override
 	protected void execCreateChildPages(List<IPage<?>> pageList) {
 		super.execCreateChildPages(pageList);
-		EgtGraphTablePage egtGraphTablePage = new EgtGraphTablePage();
-		pageList.add(egtGraphTablePage);
+		FormPage egtGraphSimulationPage = new FormPage(EgtGraphSimulationForm.class);
+		pageList.add(egtGraphSimulationPage);
 	}
 
 	@Override
@@ -31,6 +32,6 @@ public class WorkOutline extends AbstractOutline {
 
 	@Override
 	protected String getConfiguredIconId() {
-		return FontAwesomeIcons.Wrench;
+		return FontAwesomeIcons.XSquared;
 	}
 }

@@ -105,4 +105,20 @@ public class EgtGraphProcessService implements IEgtGraphProcessService {
 		return del;
 	}
 
+	@Override
+	public String getSvgTextForGraph(GraphInformation graphInformation) throws ProcessingException {
+		String filePath = m_directory + graphInformation.getFileName();
+
+		String svg = "";
+		try {
+			FileReader reader = new FileReader(filePath);
+			svg = IOUtility.readString(reader);
+			reader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return svg;
+	}
+
 }

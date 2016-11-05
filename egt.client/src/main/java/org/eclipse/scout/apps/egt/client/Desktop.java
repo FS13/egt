@@ -2,7 +2,8 @@ package org.eclipse.scout.apps.egt.client;
 
 import java.util.List;
 
-import org.eclipse.scout.apps.egt.client.work.WorkOutline;
+import org.eclipse.scout.apps.egt.client.work.EgtGraphOutline;
+import org.eclipse.scout.apps.egt.client.work.EgtSimulationAndCalculationOutline;
 import org.eclipse.scout.apps.egt.shared.Icons;
 import org.eclipse.scout.rt.client.ui.action.keystroke.IKeyStroke;
 import org.eclipse.scout.rt.client.ui.desktop.AbstractDesktop;
@@ -30,7 +31,8 @@ public class Desktop extends AbstractDesktop {
 
 	@Override
 	protected List<Class<? extends IOutline>> getConfiguredOutlines() {
-		return CollectionUtility.<Class<? extends IOutline>>arrayList(WorkOutline.class);
+		return CollectionUtility.<Class<? extends IOutline>>arrayList(EgtGraphOutline.class,
+				EgtSimulationAndCalculationOutline.class);
 	}
 
 	@Override
@@ -72,13 +74,13 @@ public class Desktop extends AbstractDesktop {
 	// }
 
 	@Order(1000)
-	public class WorkOutlineViewButton extends AbstractOutlineViewButton {
+	public class EgtGraphOutlineViewButton extends AbstractOutlineViewButton {
 
-		public WorkOutlineViewButton() {
-			this(WorkOutline.class);
+		public EgtGraphOutlineViewButton() {
+			this(EgtGraphOutline.class);
 		}
 
-		protected WorkOutlineViewButton(Class<? extends WorkOutline> outlineClass) {
+		protected EgtGraphOutlineViewButton(Class<? extends EgtGraphOutline> outlineClass) {
 			super(Desktop.this, outlineClass);
 		}
 
@@ -90,6 +92,29 @@ public class Desktop extends AbstractDesktop {
 		@Override
 		protected String getConfiguredKeyStroke() {
 			return IKeyStroke.F2;
+		}
+	}
+
+	@Order(2000)
+	public class EgtSimulationAndCalculationOutlineViewButton extends AbstractOutlineViewButton {
+
+		public EgtSimulationAndCalculationOutlineViewButton() {
+			this(EgtSimulationAndCalculationOutline.class);
+		}
+
+		protected EgtSimulationAndCalculationOutlineViewButton(
+				Class<? extends EgtSimulationAndCalculationOutline> outlineClass) {
+			super(Desktop.this, outlineClass);
+		}
+
+		@Override
+		protected DisplayStyle getConfiguredDisplayStyle() {
+			return DisplayStyle.TAB;
+		}
+
+		@Override
+		protected String getConfiguredKeyStroke() {
+			return IKeyStroke.F3;
 		}
 	}
 

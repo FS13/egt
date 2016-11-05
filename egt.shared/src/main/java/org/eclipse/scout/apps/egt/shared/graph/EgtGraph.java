@@ -16,6 +16,8 @@ public class EgtGraph {
 
 	private int m_boundary = 30;
 
+	private boolean m_changing = false;
+
 	public EgtGraph() {
 		m_vertices = new ArrayList<EgtGraphVertex>();
 		m_edges = new ArrayList<EgtGraphWeightedDirectedEdge>();
@@ -58,6 +60,14 @@ public class EgtGraph {
 
 	public void setBoundary(int boundary) {
 		m_boundary = boundary;
+	}
+
+	public boolean isChanging() {
+		return m_changing;
+	}
+
+	public void setChanging(boolean changing) {
+		m_changing = changing;
 	}
 
 	public List<EgtGraphVertex> getVertices() {

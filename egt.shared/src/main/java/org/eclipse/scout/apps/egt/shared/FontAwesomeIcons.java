@@ -8,4 +8,5 @@ public class FontAwesomeIcons extends AbstractIcons {
 
 	public static final String Bomb = "font:awesomeIcons \uF1E2";
 	public static final String Wrench = "font:awesomeIcons \uF0AD";
+	public static final String XSquared = "font:awesomeIcons \uF12B";
 }
