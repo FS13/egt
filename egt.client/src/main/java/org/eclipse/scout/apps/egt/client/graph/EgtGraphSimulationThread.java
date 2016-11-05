@@ -30,12 +30,12 @@ public class EgtGraphSimulationThread extends Thread {
 	}
 
 	private class EgtGraphSimulationRunnable implements IRunnable {
-		protected EgtGraphVertex v;
+		protected EgtGraphWeightedDirectedEdge e;
 		protected int t;
 		protected IEgtSpeciesCode c;
 
-		public EgtGraphSimulationRunnable(EgtGraphVertex vertex, IEgtSpeciesCode code, int timeSteps) {
-			v = vertex;
+		public EgtGraphSimulationRunnable(EgtGraphWeightedDirectedEdge edge, IEgtSpeciesCode code, int timeSteps) {
+			e = edge;
 			t = timeSteps;
 			c = code;
 		}
@@ -213,6 +213,7 @@ public class EgtGraphSimulationThread extends Thread {
 		}
 
 		for (EgtGraphVertex vertex : m_simulationForm.getGraphDetailFormField().getInnerForm().getGraph().getVertices()) {
+			vertex.setOldSpecies(vertex.getSpecies());
 			IEgtSpeciesCode c = BEANS.get(EgtSpeciesCodeType.class).getCodeByEnum(vertex.getSpecies());
 
 			double f = focl.getFitnessOfColor(c).getFitness();
@@ -257,6 +258,8 @@ public class EgtGraphSimulationThread extends Thread {
 			fitnessSum = fitnessSum - focl.getFitnessOfColor(updateVertexSpeciesBefore).getFitness();
 			nocl.subOneFromColor(updateVertexSpeciesBefore);
 
+			updateVertex.setOldSpecies(updateVertex.getSpecies());
+
 			updateVertex.setSpecies(selectedVertex.getSpecies());
 			IEgtSpeciesCode updateVertexSpeciesAfter = BEANS.get(EgtSpeciesCodeType.class)
 					.getCodeByEnum(updateVertex.getSpecies());
@@ -266,13 +269,13 @@ public class EgtGraphSimulationThread extends Thread {
 
 			timeSteps++;
 
-			ModelJobs.schedule(new EgtGraphSimulationRunnable(updateVertex, null, timeSteps) {
+			ModelJobs.schedule(new EgtGraphSimulationRunnable(selectedEdge, null, timeSteps) {
 				@Override
 				public void run() throws Exception {
 					m_simulationForm.getGraphDetailFormField().getInnerForm().getGraph().setChanging(true);
-					m_simulationForm.getGraphDetailFormField().getInnerForm().getGraph().changeVertex(v);
+					m_simulationForm.getGraphDetailFormField().getInnerForm().getGraph().changeVertex(e.getTo());
 					try {
-						m_simulationForm.getGraphDetailFormField().getInnerForm().populateSimulationChangedVertex(v);
+						m_simulationForm.getGraphDetailFormField().getInnerForm().populateSimulationUpdateEdge(e);
 					} catch (ProcessingException e) {
 						e.printStackTrace();
 					}
