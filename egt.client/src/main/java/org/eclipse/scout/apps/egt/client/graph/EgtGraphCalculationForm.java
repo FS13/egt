@@ -8,6 +8,7 @@ import java.util.Set;
 import org.eclipse.scout.apps.egt.client.ui.desktop.forms.IEgtPageForm;
 import org.eclipse.scout.apps.egt.client.ui.fields.AbstractDoubleColumn;
 import org.eclipse.scout.apps.egt.client.ui.fields.AbstractDoubleField;
+import org.eclipse.scout.apps.egt.shared.graph.EgtGraph;
 import org.eclipse.scout.apps.egt.shared.graph.EgtGraphLookupCall;
 import org.eclipse.scout.apps.egt.shared.graph.EgtGraphStorage.GraphInformation;
 import org.eclipse.scout.apps.egt.shared.graph.EgtSpeciesCodeType;
@@ -31,6 +32,7 @@ import org.eclipse.scout.rt.client.ui.form.fields.button.AbstractButton;
 import org.eclipse.scout.rt.client.ui.form.fields.button.AbstractCloseButton;
 import org.eclipse.scout.rt.client.ui.form.fields.groupbox.AbstractGroupBox;
 import org.eclipse.scout.rt.client.ui.form.fields.listbox.AbstractListBox;
+import org.eclipse.scout.rt.client.ui.form.fields.sequencebox.AbstractSequenceBox;
 import org.eclipse.scout.rt.client.ui.form.fields.smartfield.AbstractSmartField;
 import org.eclipse.scout.rt.client.ui.form.fields.tablefield.AbstractTableField;
 import org.eclipse.scout.rt.platform.BEANS;
@@ -58,6 +60,7 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 	private List<IEgtSpeciesCode> m_speciesList;
 
 	private boolean m_calculated = false;
+	private boolean m_compared = false;
 
 	public EgtGraphCalculationForm() throws ProcessingException {
 		super();
@@ -97,6 +100,14 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 		m_calculated = calculated;
 	}
 
+	public boolean getCompared() {
+		return m_compared;
+	}
+
+	public void setCompared(boolean compared) {
+		m_compared = compared;
+	}
+
 	@Override
 	protected void execInitForm() throws ProcessingException {
 		super.execInitForm();
@@ -112,6 +123,7 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 		updateStates();
 
 		setCalculated(false);
+		setCompared(false);
 
 		getOkButton().setVisible(false);
 		getCancelButton().setVisible(false);
@@ -164,9 +176,12 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 			getConfigurationBox().getSpeciesBox().getCalculateForSpeciesField().setValue(null);
 			getConfigurationBox().getSpeciesBox().getAdditionalSpeciesField().uncheckAllKeys();
 
+			getConfigurationBox().getCompareSequenceBox().getCompareGraphField().setValue(null);
+			getAnalysisBox().getProbabilityTableField().getTable().getComparisonFixationProbabilityColumn().setVisible(false);
+			getAnalysisBox().getProbabilityTableField().getTable().getComparisonExtinctionProbabilityColumn().setVisible(false);
+
 			setCalculated(false);
 		}
-
 	}
 
 	@InjectFieldTo(EgtGraphDetailForm.MainBox.GroupBox.class)
@@ -189,6 +204,10 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 
 		public SpeciesBox getSpeciesBox() {
 			return getFieldByClass(SpeciesBox.class);
+		}
+
+		public CompareSequenceBox getCompareSequenceBox() {
+			return getFieldByClass(CompareSequenceBox.class);
 		}
 
 		@Order(10.0)
@@ -420,7 +439,79 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 			@Override
 			protected void execClickAction() throws ProcessingException {
 				super.execClickAction();
-				startCalculation();
+				startCalculation(getGraphDetailFormField().getInnerForm().getGraph(), false);
+			}
+		}
+
+		@Order(40.0)
+		public class CompareSequenceBox extends AbstractSequenceBox {
+			String m_svgText;
+
+			public CompareGraphField getCompareGraphField() {
+				return getFieldByClass(CompareGraphField.class);
+			}
+
+			@Order(10.0)
+			public class CompareGraphField extends AbstractSmartField<GraphInformation> {
+
+				@Override
+				public ILookupCall<GraphInformation> getLookupCall() {
+					EgtGraphLookupCall call = ((EgtGraphLookupCall) super.getLookupCall());
+					try {
+						int numberOfVertices = getChoseGraphField().getValue().getNumberOfVertices();
+						call.setNumberOfVertices(numberOfVertices);
+					} catch (ProcessingException e) {
+					}
+					return call;
+				}
+
+				@Override
+				protected Class<? extends ILookupCall<GraphInformation>> getConfiguredLookupCall() {
+					return EgtGraphLookupCall.class;
+				}
+
+				@Override
+				protected void execChangedValue() throws ProcessingException {
+					super.execChangedValue();
+
+					IEgtGraphProcessService service = BEANS.get(IEgtGraphProcessService.class);
+					m_svgText = service.getSvgTextForGraph(getValue());
+
+					getAnalysisBox().getProbabilityTableField().getTable().getComparisonFixationProbabilityColumn().setVisible(true);
+					getAnalysisBox().getProbabilityTableField().getTable().getComparisonExtinctionProbabilityColumn().setVisible(true);
+
+					setCompared(false);
+				}
+
+			}
+
+			@Order(20.0)
+			public class CompareButton extends AbstractButton {
+
+				@Override
+				protected boolean getConfiguredProcessButton() {
+					return false;
+				}
+
+				@Override
+				protected String getConfiguredLabel() {
+					return TEXTS.get("Compare");
+				}
+
+				@Override
+				protected int getConfiguredHorizontalAlignment() {
+					return 0;
+				}
+
+				@Override
+				protected void execClickAction() throws ProcessingException {
+					super.execClickAction();
+					try {
+						startCalculation(GraphUtility.buildGraphFromSvgText(m_svgText), true);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
 			}
 		}
 
@@ -510,6 +601,10 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 					return getColumnSet().getColumnByClass(ProbabilitiesColumn.class);
 				}
 
+				public ComparisonProbabilitiesColumn getComparisonProbabilitiesColumn() {
+					return getColumnSet().getColumnByClass(ComparisonProbabilitiesColumn.class);
+				}
+
 				public ColorColumn getColorColumnByCode(IEgtSpeciesCode code) {
 					for (IColumn<?> column : getColumns()) {
 						if (column instanceof ColorColumn && CompareUtility.equals(((ColorColumn) column).getCode().getId(), code.getId())) {
@@ -527,6 +622,14 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 					return getColumnSet().getColumnByClass(ExtinctionProbabilityColumn.class);
 				}
 
+				public ComparisonFixationProbabilityColumn getComparisonFixationProbabilityColumn() {
+					return getColumnSet().getColumnByClass(ComparisonFixationProbabilityColumn.class);
+				}
+
+				public ComparisonExtinctionProbabilityColumn getComparisonExtinctionProbabilityColumn() {
+					return getColumnSet().getColumnByClass(ComparisonExtinctionProbabilityColumn.class);
+				}
+
 				@Order(5.0)
 				public class StateColumn extends AbstractColumn<int[]> {
 
@@ -539,6 +642,16 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 
 				@Order(6.0)
 				public class ProbabilitiesColumn extends AbstractColumn<Matrix> {
+
+					@Override
+					protected boolean getConfiguredDisplayable() {
+						return false;
+					}
+
+				}
+
+				@Order(7.0)
+				public class ComparisonProbabilitiesColumn extends AbstractColumn<Matrix> {
 
 					@Override
 					protected boolean getConfiguredDisplayable() {
@@ -662,6 +775,76 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 
 				}
 
+				@Order(120.0)
+				public class ComparisonFixationProbabilityColumn extends AbstractDoubleColumn {
+
+					@Override
+					protected String getConfiguredHeaderText() {
+						return TEXTS.get("FixationProbabilityComparison");
+					}
+
+					@Override
+					protected boolean getConfiguredVisible() {
+						return false;
+					}
+
+					@Override
+					protected int getConfiguredMaxFractionDigits() {
+						return 5;
+					}
+
+					@Override
+					protected boolean getConfiguredPercent() {
+						return true;
+					}
+
+					@Override
+					protected int getConfiguredMultiplier() {
+						return 100;
+					}
+
+					@Override
+					protected int getConfiguredWidth() {
+						return 250;
+					}
+
+				}
+
+				@Order(130.0)
+				public class ComparisonExtinctionProbabilityColumn extends AbstractDoubleColumn {
+
+					@Override
+					protected String getConfiguredHeaderText() {
+						return TEXTS.get("ExtinctionProbabilityComparison");
+					}
+
+					@Override
+					protected boolean getConfiguredVisible() {
+						return false;
+					}
+
+					@Override
+					protected int getConfiguredMaxFractionDigits() {
+						return 5;
+					}
+
+					@Override
+					protected boolean getConfiguredPercent() {
+						return true;
+					}
+
+					@Override
+					protected int getConfiguredMultiplier() {
+						return 100;
+					}
+
+					@Override
+					protected int getConfiguredWidth() {
+						return 250;
+					}
+
+				}
+
 				@Order(210.0)
 				public class DetailMenu extends AbstractMenu {
 
@@ -685,6 +868,37 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 					public void execAction() throws ProcessingException {
 						EgtGraphCalculationDetailProbabilitiesForm form = new EgtGraphCalculationDetailProbabilitiesForm(getGraphDetailFormField().getInnerForm().getGraph().getVertices().size(),
 								getProbabilitiesColumn().getSelectedValue(),
+								getIndexMapList().getAllStateIndicesForColorState(getStateColumn().getSelectedValue()),
+								getIndexMapList().getAllIndexStatePairs());
+						form.startDetails();
+						form.waitFor();
+					}
+
+				}
+
+				@Order(220.0)
+				public class ComparisonDetailMenu extends AbstractMenu {
+
+					@Override
+					protected String getConfiguredText() {
+						return TEXTS.get("DetailsComparison_");
+					}
+
+					@Override
+					protected Set<? extends IMenuType> getConfiguredMenuTypes() {
+						return CollectionUtility.hashSet(TableMenuType.SingleSelection);
+					}
+
+					@Override
+					protected void execOwnerValueChanged(Object newOwnerValue) {
+						super.execOwnerValueChanged(newOwnerValue);
+						setEnabled(getCompared());
+					}
+
+					@Override
+					public void execAction() throws ProcessingException {
+						EgtGraphCalculationDetailProbabilitiesForm form = new EgtGraphCalculationDetailProbabilitiesForm(getGraphDetailFormField().getInnerForm().getGraph().getVertices().size(),
+								getComparisonProbabilitiesColumn().getSelectedValue(),
 								getIndexMapList().getAllStateIndicesForColorState(getStateColumn().getSelectedValue()),
 								getIndexMapList().getAllIndexStatePairs());
 						form.startDetails();
@@ -737,11 +951,12 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 		}
 
 		setCalculated(false);
+		setCompared(false);
 
 	}
 
-	private void startCalculation() throws ProcessingException {
-		EgtGraphCalculationThread cal = new EgtGraphCalculationThread(ClientSessionProvider.currentSession(), this, getSpeciesList());
+	private void startCalculation(EgtGraph graph, boolean isComparison) throws ProcessingException {
+		EgtGraphCalculationThread cal = new EgtGraphCalculationThread(ClientSessionProvider.currentSession(), this, graph, getSpeciesList(), isComparison);
 		cal.start();
 	}
 

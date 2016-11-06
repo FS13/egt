@@ -3,6 +3,7 @@ package org.eclipse.scout.apps.egt.client.file;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.scout.apps.egt.shared.graph.EgtGraphLookupCall;
 import org.eclipse.scout.apps.egt.shared.graph.EgtGraphStorage;
 import org.eclipse.scout.apps.egt.shared.graph.EgtGraphStorage.GraphInformation;
 import org.eclipse.scout.apps.egt.shared.graph.IEgtGraphLookupService;
@@ -43,11 +44,9 @@ public class EgtGraphLookupService implements IEgtGraphLookupService {
 		return getDataByMatcher(new Matcher() {
 			@Override
 			public boolean matches(GraphInformation graphInformation) {
-				if (call.getKey() != null) {
-					int numberOfVertices = call.getKey().getNumberOfVertices();
-					if (CompareUtility.equals(numberOfVertices, 0)) {
-						return CompareUtility.equals(graphInformation.getNumberOfVertices(), numberOfVertices);
-					}
+				int numberOfVertices = ((EgtGraphLookupCall) call).getNumberOfVertices();
+				if (!CompareUtility.equals(numberOfVertices, 0)) {
+					return CompareUtility.equals(graphInformation.getNumberOfVertices(), numberOfVertices);
 				}
 				return true;
 			}

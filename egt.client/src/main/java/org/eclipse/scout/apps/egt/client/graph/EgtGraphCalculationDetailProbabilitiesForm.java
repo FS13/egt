@@ -28,7 +28,6 @@ import org.eclipse.scout.rt.platform.util.CompareUtility;
 import org.eclipse.scout.rt.platform.util.TypeCastUtility;
 import org.eclipse.scout.rt.platform.util.collection.OrderedCollection;
 import org.eclipse.scout.rt.shared.TEXTS;
-import org.eclipse.scout.rt.shared.services.common.code.CODES;
 
 import Jama.Matrix;
 
@@ -166,7 +165,7 @@ public class EgtGraphCalculationDetailProbabilitiesForm extends AbstractForm {
 
 					@Override
 					protected void execDecorateRow(ITableRow row) throws ProcessingException {
-						EgtSpeciesCodeType speciesCodeType = CODES.getCodeType(EgtSpeciesCodeType.class);
+						EgtSpeciesCodeType speciesCodeType = BEANS.get(EgtSpeciesCodeType.class);
 						IEgtSpeciesCode[] state = getTable().getStateColumn().getValue(row);
 						if (!CompareUtility.equals(state, null)) {
 							for (int i = 1; i < state.length; i++) {
@@ -182,7 +181,7 @@ public class EgtGraphCalculationDetailProbabilitiesForm extends AbstractForm {
 					}
 
 					public IndividualColumn getIndividualColumnByInt(int individual) {
-						for (IColumn column : getColumns()) {
+						for (IColumn<?> column : getColumns()) {
 							if (column instanceof IndividualColumn && CompareUtility.equals(((IndividualColumn) column).getIndividual(), individual)) {
 								return (IndividualColumn) column;
 							}
