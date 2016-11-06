@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.eclipse.scout.apps.egt.client.graph.EgtGraphCalculationForm.ConfigurationBox.FitnessBox.FitnessColorBox;
 import org.eclipse.scout.apps.egt.client.ui.desktop.forms.IEgtPageForm;
 import org.eclipse.scout.apps.egt.client.ui.fields.AbstractDoubleColumn;
 import org.eclipse.scout.apps.egt.client.ui.fields.AbstractDoubleField;
@@ -61,6 +62,7 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 
 	private boolean m_calculated = false;
 	private boolean m_compared = false;
+	private boolean m_isGuiUpdating = false;
 
 	public EgtGraphCalculationForm() throws ProcessingException {
 		super();
@@ -120,7 +122,7 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 
 		setIndexMapList(new IndexMapList());
 
-		updateStates();
+		updateGui();
 
 		setCalculated(false);
 		setCompared(false);
@@ -173,14 +175,11 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 				e.printStackTrace();
 			}
 
-			getConfigurationBox().getSpeciesBox().getCalculateForSpeciesField().setValue(null);
-			getConfigurationBox().getSpeciesBox().getAdditionalSpeciesField().uncheckAllKeys();
+			setCalculated(false);
 
 			getConfigurationBox().getCompareSequenceBox().getCompareGraphField().setValue(null);
-			getAnalysisBox().getProbabilityTableField().getTable().getComparisonFixationProbabilityColumn().setVisible(false);
-			getAnalysisBox().getProbabilityTableField().getTable().getComparisonExtinctionProbabilityColumn().setVisible(false);
 
-			setCalculated(false);
+			updateGui();
 		}
 	}
 
@@ -204,6 +203,10 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 
 		public SpeciesBox getSpeciesBox() {
 			return getFieldByClass(SpeciesBox.class);
+		}
+
+		public CalculateButton getCalculateButton() {
+			return getFieldByClass(CalculateButton.class);
 		}
 
 		public CompareSequenceBox getCompareSequenceBox() {
@@ -252,7 +255,7 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 				@Override
 				protected void execChangedValue() throws ProcessingException {
 					super.execChangedValue();
-					updateStates();
+					updateGui();
 				}
 
 			}
@@ -298,7 +301,7 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 				@Override
 				protected void execChangedValue() throws ProcessingException {
 					super.execChangedValue();
-					updateStates();
+					updateGui();
 				}
 			}
 		}
@@ -334,7 +337,7 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 				return null;
 			}
 
-			private void computeScaledFitness() {
+			private void computeScaledFitness() throws ProcessingException {
 				Double fitnessSum = 0.0;
 				for (ICode<Long> c : BEANS.get(EgtSpeciesCodeType.class).getCodes()) {
 					if (getFitnessColorBoxByCode((IEgtSpeciesCode) c).isVisible()) {
@@ -346,6 +349,7 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 						getFitnessColorBoxByCode((IEgtSpeciesCode) c).getScaledFitnessField().setValue(fitnessSum == 0.0 ? 0.0 : NumberUtility.nvl(getFitnessColorBoxByCode((IEgtSpeciesCode) c).getFitnessField().getValue(), 0.0) / fitnessSum);
 					}
 				}
+				updateGuiWithoutStates();
 			}
 
 			abstract class FitnessColorBox extends AbstractGroupBox {
@@ -451,6 +455,10 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 				return getFieldByClass(CompareGraphField.class);
 			}
 
+			public CompareButton getCompareButton() {
+				return getFieldByClass(CompareButton.class);
+			}
+
 			@Order(10.0)
 			public class CompareGraphField extends AbstractSmartField<GraphInformation> {
 
@@ -477,10 +485,9 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 					IEgtGraphProcessService service = BEANS.get(IEgtGraphProcessService.class);
 					m_svgText = service.getSvgTextForGraph(getValue());
 
-					getAnalysisBox().getProbabilityTableField().getTable().getComparisonFixationProbabilityColumn().setVisible(true);
-					getAnalysisBox().getProbabilityTableField().getTable().getComparisonExtinctionProbabilityColumn().setVisible(true);
-
 					setCompared(false);
+
+					updateGuiWithoutStates();
 				}
 
 			}
@@ -917,41 +924,107 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 	}
 
 	private void updateStates() throws ProcessingException {
-		if (!CompareUtility.equals(getGraphDetailFormField().getInnerForm().getGraph(), null)) {
-			List<IEgtSpeciesCode> list = new ArrayList<IEgtSpeciesCode>();
-			if (!CompareUtility.equals(getConfigurationBox().getSpeciesBox().getCalculateForSpeciesField().getValue(), null)) {
-				list.add((IEgtSpeciesCode) BEANS.get(EgtSpeciesCodeType.class).getCode(getConfigurationBox().getSpeciesBox().getCalculateForSpeciesField().getValue()));
-				for (Long key : getConfigurationBox().getSpeciesBox().getAdditionalSpeciesField().getCheckedKeys()) {
-					list.add((IEgtSpeciesCode) BEANS.get(EgtSpeciesCodeType.class).getCode(key));
-				}
-				getIndexMapList().buildIndexMapList(getGraphDetailFormField().getInnerForm().getGraph().getVertices().size(), list);
-			} else {
-				setIndexMapList(new IndexMapList());
-			}
-			setSpeciesList(list);
+		if (!m_isGuiUpdating) {
 
-			for (ICode<Long> c : BEANS.get(EgtSpeciesCodeType.class).getCodes()) {
-				if (getSpeciesList().contains(c)) {
-					getConfigurationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c).setVisible(true);
-					double fitness = NumberUtility.nvl(getConfigurationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c).getFitnessField().getValue(), 0.0);
-					getConfigurationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c).getFitnessField().setValue(fitness);
-					getConfigurationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c).getScaledFitnessField().setEnabled(false);
-
+			if (!CompareUtility.equals(getGraphDetailFormField().getInnerForm().getGraph(), null)) {
+				List<IEgtSpeciesCode> list = new ArrayList<IEgtSpeciesCode>();
+				if (!CompareUtility.equals(getConfigurationBox().getSpeciesBox().getCalculateForSpeciesField().getValue(), null)) {
+					list.add((IEgtSpeciesCode) BEANS.get(EgtSpeciesCodeType.class).getCode(getConfigurationBox().getSpeciesBox().getCalculateForSpeciesField().getValue()));
+					for (Long key : getConfigurationBox().getSpeciesBox().getAdditionalSpeciesField().getCheckedKeys()) {
+						list.add((IEgtSpeciesCode) BEANS.get(EgtSpeciesCodeType.class).getCode(key));
+					}
+					getIndexMapList().buildIndexMapList(getGraphDetailFormField().getInnerForm().getGraph().getVertices().size(), list);
 				} else {
+					setIndexMapList(new IndexMapList());
+				}
+				setSpeciesList(list);
+
+				for (ICode<Long> c : BEANS.get(EgtSpeciesCodeType.class).getCodes()) {
+					if (getSpeciesList().contains(c)) {
+						getConfigurationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c).setVisible(true);
+						double fitness = NumberUtility.nvl(getConfigurationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c).getFitnessField().getValue(), 0.0);
+						getConfigurationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c).getFitnessField().setValue(fitness);
+						getConfigurationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c).getScaledFitnessField().setEnabled(false);
+
+					} else {
+						getConfigurationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c).setVisible(false);
+					}
+				}
+
+				getAnalysisBox().getProbabilityTableField().updateStates();
+			} else {
+				getAnalysisBox().getProbabilityTableField().getTable().deleteAllRows();
+				for (ICode<Long> c : BEANS.get(EgtSpeciesCodeType.class).getCodes()) {
 					getConfigurationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c).setVisible(false);
 				}
 			}
 
-			getAnalysisBox().getProbabilityTableField().updateStates();
-		} else {
-			getAnalysisBox().getProbabilityTableField().getTable().deleteAllRows();
-			for (ICode<Long> c : BEANS.get(EgtSpeciesCodeType.class).getCodes()) {
-				getConfigurationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c).setVisible(false);
-			}
+			setCalculated(false);
+			setCompared(false);
+		}
+	}
+
+	private void updateGui() throws ProcessingException {
+		updateGui(true);
+	}
+
+	public void updateGuiWithoutStates() throws ProcessingException {
+		updateGui(false);
+	}
+
+	private void updateGui(boolean updateStates) throws ProcessingException {
+		if (updateStates) {
+			updateStates();
 		}
 
-		setCalculated(false);
-		setCompared(false);
+		if (!m_isGuiUpdating) {
+			m_isGuiUpdating = true;
+
+			boolean calculateForSpeciesEnabled = !CompareUtility.equals(getChoseGraphField().getValue(), null);
+			boolean additionalSpeciesEnabled = calculateForSpeciesEnabled && !CompareUtility.equals(getConfigurationBox().getSpeciesBox().getCalculateForSpeciesField().getValue(), null);
+			boolean calculateEnabled = true;
+			for (ICode<Long> c : BEANS.get(EgtSpeciesCodeType.class).getCodes()) {
+				FitnessColorBox fitnessColorBox = getConfigurationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c);
+				if (fitnessColorBox.isVisible() && !CompareUtility.equals(fitnessColorBox.getScaledFitnessField().getValue(), null) && (fitnessColorBox.getScaledFitnessField().getValue() == 0)) {
+					calculateEnabled = false;
+					break;
+				}
+			}
+			calculateEnabled = calculateEnabled && additionalSpeciesEnabled;
+
+			boolean compareGraphEnabled = calculateEnabled && getCalculated();
+
+			boolean compareEnabled = compareGraphEnabled && !CompareUtility.equals(getConfigurationBox().getCompareSequenceBox().getCompareGraphField().getValue(), null);
+
+			getConfigurationBox().getSpeciesBox().getCalculateForSpeciesField().setEnabled(calculateForSpeciesEnabled);
+			if (!calculateForSpeciesEnabled) {
+				getConfigurationBox().getSpeciesBox().getCalculateForSpeciesField().setValue(null);
+			}
+
+			getConfigurationBox().getSpeciesBox().getAdditionalSpeciesField().setEnabled(additionalSpeciesEnabled);
+			if (!additionalSpeciesEnabled) {
+				getConfigurationBox().getSpeciesBox().getAdditionalSpeciesField().uncheckAllKeys();
+			}
+
+			getConfigurationBox().getCalculateButton().setEnabled(calculateEnabled);
+
+			getConfigurationBox().getCompareSequenceBox().getCompareGraphField().setEnabled(compareGraphEnabled);
+
+			getConfigurationBox().getCompareSequenceBox().getCompareButton().setEnabled(compareEnabled);
+
+			getAnalysisBox().getProbabilityTableField().getTable().getComparisonFixationProbabilityColumn().setVisible(compareEnabled);
+			getAnalysisBox().getProbabilityTableField().getTable().getComparisonExtinctionProbabilityColumn().setVisible(compareEnabled);
+
+			if (compareEnabled && !getCompared()) {
+				getAnalysisBox().getProbabilityTableField().getTable().getComparisonFixationProbabilityColumn().fill(null);
+				getAnalysisBox().getProbabilityTableField().getTable().getComparisonExtinctionProbabilityColumn().fill(null);
+				getAnalysisBox().getProbabilityTableField().getTable().getComparisonProbabilitiesColumn().fill(null);
+
+			}
+
+			m_isGuiUpdating = false;
+
+		}
 
 	}
 

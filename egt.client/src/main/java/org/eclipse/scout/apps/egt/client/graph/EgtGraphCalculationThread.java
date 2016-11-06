@@ -157,6 +157,7 @@ public class EgtGraphCalculationThread extends Thread {
 				} else {
 					m_calculationForm.setCompared(true);
 				}
+				m_calculationForm.updateGuiWithoutStates();
 			}
 		}, ModelJobs.newInput(ClientRunContexts.copyCurrent().withSession(m_clientSession, true))
 				.withName("transferProbabilities"));
