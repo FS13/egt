@@ -16,6 +16,9 @@ import org.eclipse.scout.apps.egt.shared.graph.IEgtGraphProcessService;
 import org.eclipse.scout.apps.egt.shared.graph.IndexMapList;
 import org.eclipse.scout.rt.client.session.ClientSessionProvider;
 import org.eclipse.scout.rt.client.ui.action.keystroke.IKeyStroke;
+import org.eclipse.scout.rt.client.ui.action.menu.AbstractMenu;
+import org.eclipse.scout.rt.client.ui.action.menu.IMenuType;
+import org.eclipse.scout.rt.client.ui.action.menu.TableMenuType;
 import org.eclipse.scout.rt.client.ui.basic.table.AbstractTable;
 import org.eclipse.scout.rt.client.ui.basic.table.ITableRow;
 import org.eclipse.scout.rt.client.ui.basic.table.columns.AbstractColumn;
@@ -35,6 +38,7 @@ import org.eclipse.scout.rt.platform.IOrdered;
 import org.eclipse.scout.rt.platform.Order;
 import org.eclipse.scout.rt.platform.exception.ProcessingException;
 import org.eclipse.scout.rt.platform.extension.InjectFieldTo;
+import org.eclipse.scout.rt.platform.util.CollectionUtility;
 import org.eclipse.scout.rt.platform.util.CompareUtility;
 import org.eclipse.scout.rt.platform.util.NumberUtility;
 import org.eclipse.scout.rt.platform.util.StringUtility;
@@ -45,11 +49,15 @@ import org.eclipse.scout.rt.shared.services.common.code.ICodeType;
 import org.eclipse.scout.rt.shared.services.lookup.ILookupCall;
 import org.eclipse.scout.rt.shared.services.lookup.ILookupRow;
 
+import Jama.Matrix;
+
 public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageForm {
 
 	private IndexMapList m_indexMapList;
 
 	private List<IEgtSpeciesCode> m_speciesList;
+
+	private boolean m_calculated = false;
 
 	public EgtGraphCalculationForm() throws ProcessingException {
 		super();
@@ -81,6 +89,14 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 		m_speciesList = speciesList;
 	}
 
+	public boolean getCalculated() {
+		return m_calculated;
+	}
+
+	public void setCalculated(boolean calculated) {
+		m_calculated = calculated;
+	}
+
 	@Override
 	protected void execInitForm() throws ProcessingException {
 		super.execInitForm();
@@ -94,6 +110,8 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 		setIndexMapList(new IndexMapList());
 
 		updateStates();
+
+		setCalculated(false);
 
 		getOkButton().setVisible(false);
 		getCancelButton().setVisible(false);
@@ -146,6 +164,7 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 			getConfigurationBox().getSpeciesBox().getCalculateForSpeciesField().setValue(null);
 			getConfigurationBox().getSpeciesBox().getAdditionalSpeciesField().uncheckAllKeys();
 
+			setCalculated(false);
 		}
 
 	}
@@ -470,10 +489,6 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 				protected void injectColumnsInternal(OrderedCollection<IColumn<?>> columns) {
 					for (ICode<Long> c : BEANS.get(EgtSpeciesCodeType.class).getCodes()) {
 						columns.addOrdered(new ColorColumn((IEgtSpeciesCode) c) {
-							@Override
-							protected double getConfiguredViewOrder() {
-								return 10;
-							}
 						});
 					}
 				}
@@ -489,6 +504,10 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 
 				public StateColumn getStateColumn() {
 					return getColumnSet().getColumnByClass(StateColumn.class);
+				}
+
+				public ProbabilitiesColumn getProbabilitiesColumn() {
+					return getColumnSet().getColumnByClass(ProbabilitiesColumn.class);
 				}
 
 				public ColorColumn getColorColumnByCode(IEgtSpeciesCode code) {
@@ -510,6 +529,16 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 
 				@Order(5.0)
 				public class StateColumn extends AbstractColumn<int[]> {
+
+					@Override
+					protected boolean getConfiguredDisplayable() {
+						return false;
+					}
+
+				}
+
+				@Order(6.0)
+				public class ProbabilitiesColumn extends AbstractColumn<Matrix> {
 
 					@Override
 					protected boolean getConfiguredDisplayable() {
@@ -598,7 +627,7 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 
 					@Override
 					protected int getConfiguredWidth() {
-						return 220;
+						return 250;
 					}
 
 				}
@@ -628,7 +657,38 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 
 					@Override
 					protected int getConfiguredWidth() {
-						return 220;
+						return 250;
+					}
+
+				}
+
+				@Order(210.0)
+				public class DetailMenu extends AbstractMenu {
+
+					@Override
+					protected String getConfiguredText() {
+						return TEXTS.get("Details_");
+					}
+
+					@Override
+					protected Set<? extends IMenuType> getConfiguredMenuTypes() {
+						return CollectionUtility.hashSet(TableMenuType.SingleSelection);
+					}
+
+					@Override
+					protected void execOwnerValueChanged(Object newOwnerValue) {
+						super.execOwnerValueChanged(newOwnerValue);
+						setEnabled(getCalculated());
+					}
+
+					@Override
+					public void execAction() throws ProcessingException {
+						EgtGraphCalculationDetailProbabilitiesForm form = new EgtGraphCalculationDetailProbabilitiesForm(getGraphDetailFormField().getInnerForm().getGraph().getVertices().size(),
+								getProbabilitiesColumn().getSelectedValue(),
+								getIndexMapList().getAllStateIndicesForColorState(getStateColumn().getSelectedValue()),
+								getIndexMapList().getAllIndexStatePairs());
+						form.startDetails();
+						form.waitFor();
 					}
 
 				}
@@ -675,6 +735,8 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 				getConfigurationBox().getFitnessBox().getFitnessColorBoxByCode((IEgtSpeciesCode) c).setVisible(false);
 			}
 		}
+
+		setCalculated(false);
 
 	}
 

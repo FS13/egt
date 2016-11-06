@@ -20,7 +20,7 @@ public class EgtGraphProcessService implements IEgtGraphProcessService {
 	private String m_directory = CONFIG.getPropertyValue(EgtGraphsDirectoryProperty.class) + "\\";
 
 	@Override
-	public EgtGraphFormData create(EgtGraphFormData formData) throws ProcessingException {
+	public EgtGraphFormData create(EgtGraphFormData formData, int numberOfVertices) throws ProcessingException {
 		String svg = formData.getSvgText();
 		String fileName = "";
 
@@ -35,7 +35,7 @@ public class EgtGraphProcessService implements IEgtGraphProcessService {
 			e.printStackTrace();
 		}
 
-		GraphInformation graphInformation = new GraphInformation(formData.getGraphName().getValue(), fileName, 0);
+		GraphInformation graphInformation = new GraphInformation(formData.getGraphName().getValue(), fileName, numberOfVertices);
 		EgtGraphStorage.changeGraphInformation(null, graphInformation);
 
 		return formData;
@@ -67,7 +67,7 @@ public class EgtGraphProcessService implements IEgtGraphProcessService {
 	}
 
 	@Override
-	public EgtGraphFormData store(GraphInformation graphInformation, EgtGraphFormData formData)
+	public EgtGraphFormData store(GraphInformation graphInformation, EgtGraphFormData formData, int numberOfVertices)
 			throws ProcessingException {
 		String svg = formData.getSvgText();
 
@@ -83,7 +83,7 @@ public class EgtGraphProcessService implements IEgtGraphProcessService {
 		}
 
 		GraphInformation newGraphInformation = new GraphInformation(formData.getGraphName().getValue(),
-				graphInformation.getFileName(), 0);
+				graphInformation.getFileName(), numberOfVertices);
 		EgtGraphStorage.changeGraphInformation(graphInformation, newGraphInformation);
 
 		return formData;
@@ -119,6 +119,17 @@ public class EgtGraphProcessService implements IEgtGraphProcessService {
 		}
 
 		return svg;
+	}
+
+	@Override
+	public int getMaxNumberOfVertices() throws ProcessingException {
+		int max = 0;
+		for (GraphInformation graphInformation : EgtGraphStorage.getGraphInformation()) {
+			if (max < graphInformation.getNumberOfVertices()) {
+				max = graphInformation.getNumberOfVertices();
+			}
+		}
+		return max;
 	}
 
 }

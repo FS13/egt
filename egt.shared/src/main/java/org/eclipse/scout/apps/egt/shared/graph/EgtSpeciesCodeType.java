@@ -3,6 +3,7 @@ package org.eclipse.scout.apps.egt.shared.graph;
 import org.eclipse.scout.rt.platform.Order;
 import org.eclipse.scout.rt.platform.exception.ProcessingException;
 import org.eclipse.scout.rt.platform.util.CompareUtility;
+import org.eclipse.scout.rt.platform.util.StringUtility;
 import org.eclipse.scout.rt.shared.TEXTS;
 import org.eclipse.scout.rt.shared.services.common.code.AbstractCode;
 import org.eclipse.scout.rt.shared.services.common.code.AbstractCodeType;
@@ -72,6 +73,16 @@ public class EgtSpeciesCodeType extends AbstractCodeType<Long, Long> {
 			return EgtSpecies.BLACK;
 		}
 
+		@Override
+		public String getBackgroundColor() {
+			return StringUtility.substring(EgtSpecies.BLACK.getColor(), 1);
+		}
+
+		@Override
+		public String getForegroundColor() {
+			return StringUtility.substring(EgtSpecies.WHITE.getColor(), 1);
+		}
+
 	}
 
 	@Order(10.0)
@@ -93,6 +104,16 @@ public class EgtSpeciesCodeType extends AbstractCodeType<Long, Long> {
 		@Override
 		public EgtSpecies getEnum() {
 			return EgtSpecies.WHITE;
+		}
+
+		@Override
+		public String getBackgroundColor() {
+			return StringUtility.substring(EgtSpecies.WHITE.getColor(), 1);
+		}
+
+		@Override
+		public String getForegroundColor() {
+			return StringUtility.substring(EgtSpecies.BLACK.getColor(), 1);
 		}
 
 	}
@@ -118,6 +139,16 @@ public class EgtSpeciesCodeType extends AbstractCodeType<Long, Long> {
 			return EgtSpecies.RED;
 		}
 
+		@Override
+		public String getBackgroundColor() {
+			return StringUtility.substring(EgtSpecies.RED.getColor(), 1);
+		}
+
+		@Override
+		public String getForegroundColor() {
+			return StringUtility.substring(EgtSpecies.BLACK.getColor(), 1);
+		}
+
 	}
 
 	@Order(10.0)
@@ -139,6 +170,16 @@ public class EgtSpeciesCodeType extends AbstractCodeType<Long, Long> {
 		@Override
 		public EgtSpecies getEnum() {
 			return EgtSpecies.BLUE;
+		}
+
+		@Override
+		public String getBackgroundColor() {
+			return StringUtility.substring(EgtSpecies.BLUE.getColor(), 1);
+		}
+
+		@Override
+		public String getForegroundColor() {
+			return StringUtility.substring(EgtSpecies.BLACK.getColor(), 1);
 		}
 
 	}
@@ -164,6 +205,16 @@ public class EgtSpeciesCodeType extends AbstractCodeType<Long, Long> {
 			return EgtSpecies.GREEN;
 		}
 
+		@Override
+		public String getBackgroundColor() {
+			return StringUtility.substring(EgtSpecies.GREEN.getColor(), 1);
+		}
+
+		@Override
+		public String getForegroundColor() {
+			return StringUtility.substring(EgtSpecies.BLACK.getColor(), 1);
+		}
+
 	}
 
 	@Order(10.0)
@@ -185,6 +236,16 @@ public class EgtSpeciesCodeType extends AbstractCodeType<Long, Long> {
 		@Override
 		public EgtSpecies getEnum() {
 			return EgtSpecies.YELLOW;
+		}
+
+		@Override
+		public String getBackgroundColor() {
+			return StringUtility.substring(EgtSpecies.YELLOW.getColor(), 1);
+		}
+
+		@Override
+		public String getForegroundColor() {
+			return StringUtility.substring(EgtSpecies.BLACK.getColor(), 1);
 		}
 
 	}

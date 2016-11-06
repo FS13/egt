@@ -172,7 +172,7 @@ public class EgtGraphForm extends AbstractForm {
 			IEgtGraphProcessService service = BEANS.get(IEgtGraphProcessService.class);
 			EgtGraphFormData formData = new EgtGraphFormData();
 			exportFormData(formData);
-			formData = service.store(getGraphInformation(), formData);
+			formData = service.store(getGraphInformation(), formData, getGraphDetailFormField().getInnerForm().getGraph().getVertices().size());
 
 		}
 	}
@@ -202,7 +202,7 @@ public class EgtGraphForm extends AbstractForm {
 			IEgtGraphProcessService service = BEANS.get(IEgtGraphProcessService.class);
 			EgtGraphFormData formData = new EgtGraphFormData();
 			exportFormData(formData);
-			formData = service.create(formData);
+			formData = service.create(formData, getGraphDetailFormField().getInnerForm().getGraph().getVertices().size());
 
 		}
 	}
