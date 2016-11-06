@@ -32,5 +32,7 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="C:/Users/Fritz Schinkel/Documents/TUM_MSC_Mathematik/Masterarbeit/Download/matlabcontrol-4.1.0.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Fritz Schinkel/Documents/TUM_MSC_Mathematik/Masterarbeit/Download/matlabcontrol-4.1.0-sources.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

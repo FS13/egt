@@ -1,5 +1,6 @@
 package org.eclipse.scout.apps.egt.client;
 
+import org.eclipse.scout.apps.egt.client.matlab.MatlabControl;
 import org.eclipse.scout.apps.egt.shared.graph.EgtGraphStorage;
 import org.eclipse.scout.rt.client.AbstractClientSession;
 import org.eclipse.scout.rt.client.IClientSession;
@@ -29,9 +30,17 @@ public class ClientSession extends AbstractClientSession {
 	protected void execLoadSession() {
 		EgtGraphStorage.reloadGraphStorage();
 
+		MatlabControl.requestProxy();
+
 		// pre-load all known code types
 		CODES.getAllCodeTypes("org.eclipse.scout.apps.egt.shared");
 
 		setDesktop(new Desktop());
 	}
+
+	@Override
+	protected void execStoreSession() {
+		MatlabControl.disconnectProxy();
+	}
+
 }

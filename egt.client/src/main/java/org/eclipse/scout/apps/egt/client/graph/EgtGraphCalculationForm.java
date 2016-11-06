@@ -868,7 +868,7 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 					public void execAction() throws ProcessingException {
 						EgtGraphCalculationDetailProbabilitiesForm form = new EgtGraphCalculationDetailProbabilitiesForm(getGraphDetailFormField().getInnerForm().getGraph().getVertices().size(),
 								getProbabilitiesColumn().getSelectedValue(),
-								getIndexMapList().getAllStateIndicesForColorState(getStateColumn().getSelectedValue()),
+								getIndexMapList().getAllStateIndicesForColorState(false, getStateColumn().getSelectedValue()),
 								getIndexMapList().getAllIndexStatePairs());
 						form.startDetails();
 						form.waitFor();
@@ -899,7 +899,7 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 					public void execAction() throws ProcessingException {
 						EgtGraphCalculationDetailProbabilitiesForm form = new EgtGraphCalculationDetailProbabilitiesForm(getGraphDetailFormField().getInnerForm().getGraph().getVertices().size(),
 								getComparisonProbabilitiesColumn().getSelectedValue(),
-								getIndexMapList().getAllStateIndicesForColorState(getStateColumn().getSelectedValue()),
+								getIndexMapList().getAllStateIndicesForColorState(false, getStateColumn().getSelectedValue()),
 								getIndexMapList().getAllIndexStatePairs());
 						form.startDetails();
 						form.waitFor();
