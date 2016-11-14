@@ -22,12 +22,12 @@ scout.ui.prebuild=true
 scout.ui.prebuild.files=/index.html,/login.html,/logout.html,/popup-window.html
 
 ### File
-egt.file.graphs.file=C:\\temp\\graphs.json
-egt.file.graphs.directory=C:\\temp\\graphs
+egt.file.graphs.file=$basedir\\data\\graphs.json
+egt.file.graphs.directory=$basedir\\data\\graphs
 
 ### Language
 egt.application.language=de
 
 ### Matlab
-egt.matlab.installation.location=C:\\Program Files\\MATLAB\\R2015b\\bin\\matlab.exe
-egt.matlab.files.location=C:\\Users\\Fritz Schinkel\\git\\egt_neon\\matlab
+egt.matlab.installation.location=$matlabdir
+egt.matlab.files.location=$basedir\\data\\matlab
