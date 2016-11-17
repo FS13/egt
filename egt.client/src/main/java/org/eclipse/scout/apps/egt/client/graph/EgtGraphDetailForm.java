@@ -76,6 +76,18 @@ public class EgtGraphDetailForm extends AbstractForm implements IEgtPageForm {
 		m_graph = graph;
 	}
 
+	protected int getGroupBoxColumnCount() {
+		return 2;
+	}
+
+	protected int getGraphSvgFieldWidth() {
+		return 1;
+	}
+
+	protected int getConfigurationBoxWidth() {
+		return 1;
+	}
+
 	@Override
 	public void startPageForm() throws ProcessingException {
 		startInternal(new PageFormHandler());
@@ -122,7 +134,7 @@ public class EgtGraphDetailForm extends AbstractForm implements IEgtPageForm {
 
 			@Override
 			protected int getConfiguredGridColumnCount() {
-				return 2;
+				return getGroupBoxColumnCount();
 			}
 
 			@Order(5.0)
@@ -149,7 +161,7 @@ public class EgtGraphDetailForm extends AbstractForm implements IEgtPageForm {
 
 				@Override
 				protected int getConfiguredGridW() {
-					return 1;
+					return getGraphSvgFieldWidth();
 				}
 
 				@Override
@@ -181,7 +193,7 @@ public class EgtGraphDetailForm extends AbstractForm implements IEgtPageForm {
 
 				@Override
 				protected int getConfiguredGridW() {
-					return 1;
+					return getConfigurationBoxWidth();
 				}
 
 				@Override

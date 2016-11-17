@@ -13,7 +13,6 @@ import org.eclipse.scout.apps.egt.shared.graph.IEgtGraphProcessService;
 import org.eclipse.scout.rt.client.dto.FormData;
 import org.eclipse.scout.rt.client.ui.form.AbstractForm;
 import org.eclipse.scout.rt.client.ui.form.AbstractFormHandler;
-import org.eclipse.scout.rt.client.ui.form.IForm;
 import org.eclipse.scout.rt.client.ui.form.fields.button.AbstractCancelButton;
 import org.eclipse.scout.rt.client.ui.form.fields.button.AbstractOkButton;
 import org.eclipse.scout.rt.client.ui.form.fields.groupbox.AbstractGroupBox;
@@ -21,6 +20,7 @@ import org.eclipse.scout.rt.client.ui.form.fields.stringfield.AbstractStringFiel
 import org.eclipse.scout.rt.client.ui.form.fields.wrappedform.AbstractWrappedFormField;
 import org.eclipse.scout.rt.platform.BEANS;
 import org.eclipse.scout.rt.platform.Order;
+import org.eclipse.scout.rt.platform.exception.ExceptionHandler;
 import org.eclipse.scout.rt.platform.exception.ProcessingException;
 import org.eclipse.scout.rt.shared.TEXTS;
 
@@ -52,6 +52,18 @@ public class EgtGraphForm extends AbstractForm {
 	@FormData
 	public void setSvgText(String svgText) {
 		m_svgText = svgText;
+	}
+
+	protected int getGraphDetailFormGroupBoxColumnCount() {
+		return 2;
+	}
+
+	protected int getGraphDetailFormGraphSvgFieldWidth() {
+		return 1;
+	}
+
+	protected int getGraphDetailFormConfigurationBoxWidth() {
+		return 1;
 	}
 
 	public void startModify() throws ProcessingException {
@@ -130,8 +142,31 @@ public class EgtGraphForm extends AbstractForm {
 			public class GraphDetailFormField extends AbstractWrappedFormField<EgtGraphDetailForm> {
 
 				@Override
-				protected Class<? extends IForm> getConfiguredInnerForm() {
-					return EgtGraphDetailForm.class;
+				protected void initConfig() {
+					super.initConfig();
+					try {
+						EgtGraphDetailForm form = new EgtGraphDetailForm() {
+
+							@Override
+							protected int getGroupBoxColumnCount() {
+								return getGraphDetailFormGroupBoxColumnCount();
+							}
+
+							@Override
+							protected int getGraphSvgFieldWidth() {
+								return getGraphDetailFormGraphSvgFieldWidth();
+							}
+
+							@Override
+							protected int getConfigurationBoxWidth() {
+								return getGraphDetailFormConfigurationBoxWidth();
+							}
+
+						};
+						setInnerForm(form, true);
+					} catch (Exception e) {
+						BEANS.get(ExceptionHandler.class).handle(new ProcessingException("error creating instance of class '" + getConfiguredInnerForm().getName() + "'.", e));
+					}
 				}
 
 			}

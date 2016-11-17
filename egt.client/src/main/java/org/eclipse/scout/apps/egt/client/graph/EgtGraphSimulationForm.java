@@ -77,6 +77,21 @@ public class EgtGraphSimulationForm extends EgtGraphForm implements IEgtPageForm
 	}
 
 	@Override
+	protected int getGraphDetailFormGroupBoxColumnCount() {
+		return 3;
+	}
+
+	@Override
+	protected int getGraphDetailFormGraphSvgFieldWidth() {
+		return 1;
+	}
+
+	@Override
+	protected int getGraphDetailFormConfigurationBoxWidth() {
+		return 2;
+	}
+
+	@Override
 	protected void execInitForm() throws ProcessingException {
 		super.execInitForm();
 		getGraphNameField().setVisible(false);
