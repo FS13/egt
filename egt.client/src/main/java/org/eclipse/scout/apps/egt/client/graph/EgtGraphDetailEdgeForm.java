@@ -59,7 +59,7 @@ public class EgtGraphDetailEdgeForm extends AbstractForm {
 
 		if (problems) {
 			problemsWith += "\n" + " - " + TEXTS.get("VertexDoesNotExist");
-			throw new VetoException(TEXTS.get("EGTFS"), problemsWith);
+			throw new VetoException(problemsWith).withTitle(TEXTS.get("EGTFS"));
 		}
 	}
 

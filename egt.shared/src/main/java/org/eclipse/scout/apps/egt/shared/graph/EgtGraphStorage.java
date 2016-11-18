@@ -72,6 +72,7 @@ public final class EgtGraphStorage {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public static void storeGraphStorage() {
 
 		JSONArray jsonArray = new JSONArray();

@@ -1,0 +1,20 @@
+/*******************************************************************************
+ * Copyright (c) 2015 BSI Business Systems Integration AG.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Distribution License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/org/documents/edl-v10.html
+ *
+ * Contributors:
+ *     BSI Business Systems Integration AG - initial API and implementation
+ ******************************************************************************/
+@import (less) "scout/style/colors-application.css";
+
+@palette-egt-0: @palette-cyan-0;
+@palette-egt-1: @palette-cyan-1;
+@palette-egt-2: @palette-cyan-2;
+@palette-egt-3: @palette-cyan-3;
+@palette-egt-4: @palette-cyan-4;
+@palette-egt-5: @palette-cyan-5;
+@palette-egt-6: @palette-cyan-6;
+@palette-egt-7: @palette-cyan-7;

@@ -195,7 +195,7 @@ public class EgtGraphSimulationForm extends EgtGraphForm implements IEgtPageForm
 				getGraphDetailFormField().getInnerForm().setGraph(GraphUtility.buildGraphFromSvgText(getSvgText()));
 				getGraphDetailFormField().getInnerForm().populateGraph();
 				for (ITableRow row : getGraphDetailFormField().getInnerForm().getVerticesTabBox().getVerticesTableField().getTable().getRows()) {
-					getGraphDetailFormField().getInnerForm().getVerticesTabBox().getVerticesTableField().getSpeciesColumn().setValue(row, EgtSpeciesCodeType.GreyCode.ID);
+					getGraphDetailFormField().getInnerForm().getVerticesTabBox().getVerticesTableField().getSpeciesColumn().setValue(row, EgtSpeciesCodeType.GrayCode.ID);
 				}
 
 				getSimulationBox().setEnabled(true);
@@ -409,8 +409,8 @@ public class EgtGraphSimulationForm extends EgtGraphForm implements IEgtPageForm
 				for (ITableRow row : getGraphDetailFormField().getInnerForm().getVerticesTabBox().getVerticesTableField().getTable().getRows()) {
 					species.add(BEANS.get(EgtSpeciesCodeType.class).getCodeByEnum(getGraphDetailFormField().getInnerForm().getVerticesTabBox().getVerticesTableField().getEgtGraphVertecColumn().getValue(row).getSpecies()));
 				}
-				if (species.contains(BEANS.get(EgtSpeciesCodeType.class).getCode(EgtSpeciesCodeType.GreyCode.ID))) {
-					MessageBoxes.createOk().withHeader(TEXTS.get("EGTFS")).withBody(TEXTS.get("GreyIsNotAllowedAsInitialSpecies"));
+				if (species.contains(BEANS.get(EgtSpeciesCodeType.class).getCode(EgtSpeciesCodeType.GrayCode.ID))) {
+					MessageBoxes.createOk().withHeader(TEXTS.get("EGTFS")).withBody(TEXTS.get("GrayIsNotAllowedAsInitialSpecies"));
 				} else {
 					boolean startNew = !isPaused() && isStopped();
 					setEnabled(false);

@@ -46,8 +46,8 @@ public class EgtSpeciesCodeType extends AbstractCodeType<Long, Long> {
 				return (IEgtSpeciesCode) c;
 			}
 		}
-		if (CompareUtility.equals(((IEgtSpeciesCode) getCode(GreyCode.ID)).getEnum(), e)) {
-			return (IEgtSpeciesCode) getCode(GreyCode.ID);
+		if (CompareUtility.equals(((IEgtSpeciesCode) getCode(GrayCode.ID)).getEnum(), e)) {
+			return (IEgtSpeciesCode) getCode(GrayCode.ID);
 		}
 		return null;
 	}
@@ -251,7 +251,7 @@ public class EgtSpeciesCodeType extends AbstractCodeType<Long, Long> {
 	}
 
 	@Order(10.0)
-	public static class GreyCode extends AbstractCode<Long> implements IEgtSpeciesCode {
+	public static class GrayCode extends AbstractCode<Long> implements IEgtSpeciesCode {
 
 		private static final long serialVersionUID = 1L;
 		public static final Long ID = 100007L;
@@ -263,12 +263,12 @@ public class EgtSpeciesCodeType extends AbstractCodeType<Long, Long> {
 
 		@Override
 		public EgtSpecies getEnum() {
-			return EgtSpecies.GREY;
+			return EgtSpecies.GRAY;
 		}
 
 		@Override
 		public String getText() {
-			return TEXTS.get("Grey");
+			return TEXTS.get("Gray");
 		}
 
 		@Override

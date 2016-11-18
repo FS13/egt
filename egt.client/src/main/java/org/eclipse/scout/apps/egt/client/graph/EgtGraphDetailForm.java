@@ -183,7 +183,7 @@ public class EgtGraphDetailForm extends AbstractForm implements IEgtPageForm {
 						getGraphSvgField().setSvgDocument(getDocument((String) newMasterValue));
 					} catch (Exception e) {
 						e.printStackTrace();
-						getGraphSvgSourceField().setErrorStatus(e.getMessage());
+						getGraphSvgSourceField().addErrorStatus(e.getMessage());
 					}
 				}
 			}

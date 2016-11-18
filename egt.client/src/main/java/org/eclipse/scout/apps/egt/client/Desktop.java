@@ -9,8 +9,10 @@ import org.eclipse.scout.rt.client.ui.action.keystroke.IKeyStroke;
 import org.eclipse.scout.rt.client.ui.desktop.AbstractDesktop;
 import org.eclipse.scout.rt.client.ui.desktop.outline.AbstractOutlineViewButton;
 import org.eclipse.scout.rt.client.ui.desktop.outline.IOutline;
+import org.eclipse.scout.rt.client.ui.form.AbstractFormMenu;
 import org.eclipse.scout.rt.platform.Order;
 import org.eclipse.scout.rt.platform.util.CollectionUtility;
+import org.eclipse.scout.rt.shared.AbstractIcons;
 import org.eclipse.scout.rt.shared.TEXTS;
 
 /**
@@ -72,6 +74,30 @@ public class Desktop extends AbstractDesktop {
 	// }
 	// }
 	// }
+
+	@Order(20)
+	public class OptionsToolButton extends AbstractFormMenu<OptionsForm> {
+
+		@Override
+		protected String getConfiguredIconId() {
+			return AbstractIcons.Gear;
+		}
+
+		@Override
+		protected String getConfiguredKeyStroke() {
+			return IKeyStroke.F11;
+		}
+
+		@Override
+		protected String getConfiguredText() {
+			return TEXTS.get("Options");
+		}
+
+		@Override
+		protected Class<OptionsForm> getConfiguredForm() {
+			return OptionsForm.class;
+		}
+	}
 
 	@Order(1000)
 	public class EgtGraphOutlineViewButton extends AbstractOutlineViewButton {

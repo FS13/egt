@@ -169,7 +169,7 @@ public class EgtGraphCalculationForm extends EgtGraphForm implements IEgtPageFor
 				getGraphDetailFormField().getInnerForm().setGraph(GraphUtility.buildGraphFromSvgText(getSvgText()));
 				getGraphDetailFormField().getInnerForm().populateGraph();
 				for (ITableRow row : getGraphDetailFormField().getInnerForm().getVerticesTabBox().getVerticesTableField().getTable().getRows()) {
-					getGraphDetailFormField().getInnerForm().getVerticesTabBox().getVerticesTableField().getSpeciesColumn().setValue(row, EgtSpeciesCodeType.GreyCode.ID);
+					getGraphDetailFormField().getInnerForm().getVerticesTabBox().getVerticesTableField().getSpeciesColumn().setValue(row, EgtSpeciesCodeType.GrayCode.ID);
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
