@@ -13,6 +13,7 @@ import org.eclipse.scout.apps.egt.shared.graph.EgtGraphStorage.GraphInformation;
 import org.eclipse.scout.apps.egt.shared.graph.IEgtGraphProcessService;
 import org.eclipse.scout.rt.platform.config.CONFIG;
 import org.eclipse.scout.rt.platform.exception.ProcessingException;
+import org.eclipse.scout.rt.platform.util.CompareUtility;
 import org.eclipse.scout.rt.platform.util.IOUtility;
 
 public class EgtGraphProcessService implements IEgtGraphProcessService {
@@ -107,17 +108,18 @@ public class EgtGraphProcessService implements IEgtGraphProcessService {
 
 	@Override
 	public String getSvgTextForGraph(GraphInformation graphInformation) throws ProcessingException {
-		String filePath = m_directory + graphInformation.getFileName();
-
 		String svg = "";
-		try {
-			FileReader reader = new FileReader(filePath);
-			svg = IOUtility.readString(reader);
-			reader.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		if (!CompareUtility.equals(graphInformation, null)) {
+			String filePath = m_directory + graphInformation.getFileName();
 
+			try {
+				FileReader reader = new FileReader(filePath);
+				svg = IOUtility.readString(reader);
+				reader.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		return svg;
 	}
 
