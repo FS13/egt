@@ -41,6 +41,8 @@
       <groupId>matlabcontrol</groupId>
       <artifactId>matlabcontrol</artifactId>
       <version>4.1.0</version>
+      <scope>system</scope>
+    	<systemPath>C:/Users/Fritz Schinkel/.m2/repository/matlabcontrol/matlabcontrol/4.1.0/matlabcontrol-4.1.0.jar</systemPath>
     </dependency>
   </dependencies>
 </project>
